@@ -1,0 +1,108 @@
+{
+  "$schema": "../recipe-schema.json",
+  "id": "mixing/bass-glue",
+  "name": "Bass Glue Chain",
+  "category": "mixing",
+  "version": "0.1",
+  "description": "Chain for bass track: Channel EQ (fixed-frequency highpass on) -> Saturator (Tape Type) -> Glue Compressor (2:1). Adds harmonics and glues the sub.",
+  "tags": [
+    "bass",
+    "mixing",
+    "glue",
+    "low-end",
+    "saturator"
+  ],
+  "inputs": {
+    "track_number": {
+      "type": "int",
+      "default": 1
+    },
+    "drive_db": {
+      "type": "number",
+      "default": 6,
+      "min": 0,
+      "max": 24,
+      "description": "Saturator Drive em dB."
+    }
+  },
+  "steps": [
+    {
+      "op": "browser.load_item",
+      "args": {
+        "track_index": "{{track_index}}",
+        "path": [
+          "audio_effects",
+          "Channel EQ",
+          "Init"
+        ]
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Channel EQ",
+        "parameter_name": "HighPass On",
+        "value": 1
+      }
+    },
+    {
+      "op": "browser.load_item",
+      "args": {
+        "track_index": "{{track_index}}",
+        "path": [
+          "audio_effects",
+          "Saturator",
+          "Init"
+        ]
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Saturator",
+        "parameter_name": "Type",
+        "value": 4
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Saturator",
+        "parameter_name": "Drive",
+        "value": "{{drive_db}} dB"
+      }
+    },
+    {
+      "op": "browser.load_item",
+      "args": {
+        "track_index": "{{track_index}}",
+        "path": [
+          "audio_effects",
+          "Glue Compressor",
+          "Init"
+        ]
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Glue Compressor",
+        "parameter_name": "Threshold",
+        "value": "-15 dB"
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Glue Compressor",
+        "parameter_name": "Ratio",
+        "value": 1
+      }
+    }
+  ]
+}

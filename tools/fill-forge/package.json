@@ -1,0 +1,11 @@
+{
+  "name": "live-actions-fill-forge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-dialog.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.0"
+  }
+}

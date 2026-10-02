@@ -1,0 +1,24 @@
+{
+  "id": "empty-clips",
+  "name": "Empty Clips",
+  "description": "Create an empty MIDI clip in the first empty slot on each ticked MIDI track.",
+  "accent": "#22d3ee",
+  "version": "1.0",
+  "enabled": true,
+  "fields": [
+    {
+      "id": "length",
+      "label": "Length in beats",
+      "type": "text",
+      "default": "4",
+      "hint": "Number of beats (quarter notes). 4 = 1 bar in 4/4 time, 8 = 2 bars, etc."
+    },
+    {
+      "id": "name",
+      "label": "Clip name",
+      "type": "text",
+      "default": "Empty",
+      "hint": "The name given to each newly created empty MIDI clip."
+    }
+  ]
+}

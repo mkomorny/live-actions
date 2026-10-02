@@ -1,0 +1,50 @@
+/* Bundled fonts (SIL OFL 1.1; licence texts in web/fonts) -- replaces the preview theme's Google Fonts @import. */
+/* The kit asked Google for weights 400 and 700 only, so 500/600 text resolves to those two faces exactly as it did there. */
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/PlusJakartaSans-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/PlusJakartaSans-Bold.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/JetBrainsMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/JetBrainsMono-Bold.woff2") format("woff2"); }
+
+/* Theme: Cyber Neon Pink  --  kit 'cyber-neon-pink'.
+   Section 1 is the kit's tokens.css, verbatim. Section 2 is the adapter. */
+
+/* ---- 1. kit tokens.css (verbatim) ---- */
+:root {
+  --kit-bg: #09090b;
+  --kit-bg-subtle: #18181b;
+  --kit-surface: #27272a;
+  --kit-text: #f4f4f5;
+  --kit-text-muted: #a1a1aa;
+  --kit-border: #3f3f46;
+  --kit-accent: #ec4899;
+  --kit-accent-text: #ffffff;
+  
+  --kit-font-display: "Plus Jakarta Sans", sans-serif;
+  --kit-font-body: "Plus Jakarta Sans", sans-serif;
+  --kit-font-mono: "JetBrains Mono", monospace;
+  
+  --kit-space-xs: 4px;
+  --kit-space-sm: 8px;
+  --kit-space-md: 12px;
+  --kit-space-lg: 16px;
+  --kit-space-xl: 24px;
+  
+  --kit-radius-sm: 4px;
+  --kit-radius-md: 8px;
+  --kit-radius-lg: 16px;
+  --kit-radius-full: 9999px;
+  
+  --kit-shadow-sm: 0 2px 6px rgba(0,0,0,0.3);
+  --kit-shadow-md: 0 0 16px rgba(236,72,153,0.45);
+  --kit-motion-duration: 140ms;
+  --kit-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---- 2. adapter: what the app needs that the kit does not define ---- */
+:root {
+  --ad-ok: #34d399;
+  --ad-warn: #fbbf24;
+  --ad-err: #f87171;
+  --ad-label-case: uppercase;
+  --ad-label-track: .1em;
+}

@@ -1,0 +1,51 @@
+/* Bundled fonts (SIL OFL 1.1; licence texts in web/fonts) -- replaces the preview theme's Google Fonts @import. */
+/* The kit asked Google for weights 400 and 700 only, so 500/600 text resolves to those two faces exactly as it did there. */
+@font-face { font-family: "DM Sans"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/DMSans-Variable.woff2") format("woff2"); }
+@font-face { font-family: "DM Sans"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/DMSans-Variable.woff2") format("woff2"); }
+@font-face { font-family: "Space Mono"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/SpaceMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Space Mono"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/SpaceMono-Bold.woff2") format("woff2"); }
+
+/* Theme: Riso Art Studio  --  kit 'risograph-art-studio'.
+   Section 1 is the kit's tokens.css, verbatim. Section 2 is the adapter. */
+
+/* ---- 1. kit tokens.css (verbatim) ---- */
+:root {
+  --kit-bg: #faf5eb;
+  --kit-bg-subtle: #f4ede0;
+  --kit-surface: #faf5eb;
+  --kit-text: #1e1b18;
+  --kit-text-muted: #555555;
+  --kit-border: #1e1b18;
+  --kit-accent: #ff3377;
+  --kit-accent-text: #ffffff;
+  
+  --kit-font-display: "DM Sans", sans-serif;
+  --kit-font-body: "DM Sans", sans-serif;
+  --kit-font-mono: "Space Mono", monospace;
+  
+  --kit-space-xs: 4px;
+  --kit-space-sm: 8px;
+  --kit-space-md: 12px;
+  --kit-space-lg: 16px;
+  --kit-space-xl: 24px;
+  
+  --kit-radius-sm: 4px;
+  --kit-radius-md: 6px;
+  --kit-radius-lg: 8px;
+  --kit-radius-full: 6px;
+  
+  --kit-shadow-sm: 2px 2px 0px #0066cc;
+  --kit-shadow-md: 4px 4px 0px #0066cc;
+  --kit-motion-duration: 140ms;
+  --kit-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---- 2. adapter: what the app needs that the kit does not define ---- */
+:root {
+  --ad-ok: #1f9d55;
+  --ad-warn: #d99100;
+  --ad-err: #d62839;
+  --ad-border-w: 2px;
+  --ad-label-case: uppercase;
+  --ad-label-track: .08em;
+}

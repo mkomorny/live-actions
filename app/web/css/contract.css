@@ -1,0 +1,74 @@
+/* ==========================================================================
+   THEME CONTRACT  --  the one place kit tokens become app tokens.
+
+   A theme file (themes/<slug>.css) supplies the kit's own --kit-* tokens plus a
+   tiny --ad-* adapter. This file maps those onto --la-* tokens, and
+   components.css only ever reads --la-*. Add a 12th kit and nothing here or in
+   any layout changes.
+
+   Required from a kit : --kit-bg  --kit-bg-subtle  --kit-surface  --kit-text
+                         --kit-text-muted  --kit-border  --kit-accent
+                         --kit-accent-text  --kit-font-{display,body,mono}
+                         --kit-radius-{sm,md,lg,full}  --kit-shadow-{sm,md}
+                         --kit-motion-{duration,ease}  --kit-space-*
+   Optional from a kit : --kit-accent-alt  (falls back to a tint of the accent)
+   Optional adapter    : --ad-ok/warn/err  --ad-border-w  --ad-label-case
+                         --ad-label-track  --ad-heading-scale
+   ========================================================================== */
+:root {
+  /* surfaces */
+  --la-bg:          var(--kit-bg);
+  --la-bg-2:        var(--kit-bg-subtle);
+  --la-surface:     var(--kit-surface);
+  --la-surface-2:   color-mix(in srgb, var(--kit-surface) 86%, var(--kit-text));
+  --la-input:       color-mix(in srgb, var(--kit-bg) 55%, var(--kit-surface));
+  --la-border:      var(--kit-border);
+  --la-border-soft: color-mix(in srgb, var(--kit-border) 55%, transparent);
+  --la-border-w:    var(--ad-border-w, 1px);
+
+  /* text */
+  --la-text:        var(--kit-text);
+  --la-text-muted:  var(--kit-text-muted);
+  --la-text-dim:    color-mix(in srgb, var(--kit-text-muted) 62%, var(--kit-bg));
+
+  /* accent + semantics */
+  --la-accent:      var(--kit-accent);
+  --la-accent-text: var(--kit-accent-text);
+  --la-accent-2:    var(--kit-accent-alt, color-mix(in srgb, var(--kit-accent) 55%, var(--kit-text)));
+  --la-accent-soft: color-mix(in srgb, var(--kit-accent) 16%, transparent);
+  /* accent as TEXT: pulled toward the kit's text colour so a yellow accent on a
+     grey ground (or amber on white) stays legible; on dark kits it stays bright */
+  --la-accent-ink:  color-mix(in srgb, var(--kit-accent) 62%, var(--kit-text));
+  --la-warn-ink:    color-mix(in srgb, var(--ad-warn, #fbbf24) 55%, var(--kit-text));
+  --la-ok-ink:      color-mix(in srgb, var(--ad-ok, #34d399) 60%, var(--kit-text));
+  --la-ok:          var(--ad-ok, #34d399);
+  --la-warn:        var(--ad-warn, #fbbf24);
+  --la-err:         var(--ad-err, #f87171);
+  /* how much of a tool's own manifest accent survives inside the theme */
+  --la-tool-mix:    45%;
+
+  /* type */
+  --la-font-display: var(--kit-font-display);
+  --la-font-body:    var(--kit-font-body);
+  --la-font-mono:    var(--kit-font-mono);
+  --la-heading-scale: var(--ad-heading-scale, 1);
+  --la-label-case:   var(--ad-label-case, uppercase);
+  --la-label-track:  var(--ad-label-track, .08em);
+
+  /* shape + depth + motion */
+  --la-r-sm:   var(--kit-radius-sm);
+  --la-r-md:   var(--kit-radius-md);
+  --la-r-lg:   var(--kit-radius-lg);
+  --la-r-full: var(--kit-radius-full);
+  --la-shadow:      var(--kit-shadow-sm);
+  --la-shadow-lift: var(--kit-shadow-md);
+  --la-dur:  var(--kit-motion-duration, 140ms);
+  --la-ease: var(--kit-motion-ease, ease-out);
+
+  /* spacing rhythm (kits differ: 12px vs 16px md) */
+  --la-s1: var(--kit-space-xs, 4px);
+  --la-s2: var(--kit-space-sm, 8px);
+  --la-s3: var(--kit-space-md, 12px);
+  --la-s4: var(--kit-space-lg, 16px);
+  --la-s5: var(--kit-space-xl, 24px);
+}

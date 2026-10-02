@@ -1,0 +1,104 @@
+{
+  "$schema": "../recipe-schema.json",
+  "id": "racks/sidechain-rack",
+  "name": "Sidechain Rack",
+  "category": "racks",
+  "version": "0.1",
+  "description": "Compressor with kick sidechain. Applies to any track; loads Compressor with sidechain on and pumping-ready threshold.",
+  "tags": [
+    "sidechain",
+    "pumping",
+    "kick-duck",
+    "house",
+    "techno"
+  ],
+  "inputs": {
+    "track_number": {
+      "type": "int",
+      "default": 1,
+      "description": "Track destino onde o sidechain compressor entra."
+    },
+    "threshold": {
+      "type": "number",
+      "default": -20,
+      "min": -60,
+      "max": 0
+    },
+    "ratio": {
+      "type": "number",
+      "default": 8,
+      "min": 1,
+      "max": 20
+    },
+    "attack_ms": {
+      "type": "number",
+      "default": 5,
+      "min": 0.1,
+      "max": 100
+    },
+    "release_ms": {
+      "type": "number",
+      "default": 150,
+      "min": 10,
+      "max": 1000
+    }
+  },
+  "steps": [
+    {
+      "op": "browser.load_item",
+      "args": {
+        "track_index": "{{track_index}}",
+        "path": [
+          "audio_effects",
+          "Compressor",
+          "Init"
+        ]
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Sidechain On",
+        "value": 1
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Threshold",
+        "value": "{{threshold}}"
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Ratio",
+        "value": "{{ratio}}"
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Attack",
+        "value": "{{attack_ms}}"
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Release",
+        "value": "{{release_ms}}"
+      }
+    }
+  ]
+}

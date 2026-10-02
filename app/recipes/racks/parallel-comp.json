@@ -1,0 +1,90 @@
+{
+  "$schema": "../recipe-schema.json",
+  "id": "racks/parallel-comp",
+  "name": "Parallel Compression Rack",
+  "category": "racks",
+  "version": "0.1",
+  "description": "Aggressive compressor (10:1, threshold -30) with Dry/Wet 50%: NY-style parallel compression for drums/vocals.",
+  "tags": [
+    "parallel",
+    "compression",
+    "drums",
+    "vocals",
+    "ny-style"
+  ],
+  "inputs": {
+    "track_number": {
+      "type": "int",
+      "default": 1
+    },
+    "wet_amount": {
+      "type": "number",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "description": "Dry/Wet mix do paralelo."
+    }
+  },
+  "steps": [
+    {
+      "op": "browser.load_item",
+      "args": {
+        "track_index": "{{track_index}}",
+        "path": [
+          "audio_effects",
+          "Compressor",
+          "Init"
+        ]
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Threshold",
+        "value": "-30 dB",
+        "optional": true
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Ratio",
+        "value": "10:1",
+        "optional": true
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Attack",
+        "value": "0.1 ms",
+        "optional": true
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Release",
+        "value": "80 ms",
+        "optional": true
+      }
+    },
+    {
+      "op": "device.set_parameter",
+      "args": {
+        "track_index": "{{track_index}}",
+        "device_name": "Compressor",
+        "parameter_name": "Dry/Wet",
+        "value": "{{wet_amount}}"
+      }
+    }
+  ]
+}

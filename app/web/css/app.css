@@ -1,0 +1,80 @@
+/* States the preview never needed because it was static. Reads only --la-* tokens
+   (no literal colours, fonts or radii), so every theme keeps its own character. */
+.la-btn[disabled] { opacity: .55; cursor: default; filter: none; transform: none; }
+.la-result { white-space: pre-wrap; overflow-wrap: anywhere; }
+.la-result[data-state="running"] { color: var(--la-warn-ink); }
+.la-result[data-state="done"] { color: var(--la-ok-ink); }
+.la-result[data-state="error"] { color: var(--la-err); }
+.la-track-empty { padding: 8px 6px; color: var(--la-text-muted); font-size: 12px; }
+
+/* ---- Genius chat: only what the static preview never needed ---------------------------------- */
+.la-msg-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.la-msg-text code, .la-code { font-family: var(--la-font-mono); font-size: .92em; background: var(--la-input); border: 1px solid var(--la-border-soft); border-radius: var(--la-r-sm); }
+.la-msg-text code { padding: 0 4px; }
+.la-code { display: block; margin: 6px 0; padding: 8px 10px; overflow: auto; white-space: pre; }
+.la-msg-err { color: var(--la-err); }
+.la-dim { color: var(--la-text-dim); }
+.la-sys { align-self: center; font-size: 11.5px; color: var(--la-text-muted); }
+.la-think { margin: 2px 0 6px; font-size: 12px; color: var(--la-text-muted); }
+.la-think summary { cursor: pointer; font: 700 9.5px var(--la-font-body); text-transform: var(--la-label-case); letter-spacing: var(--la-label-track); }
+.la-think .la-msg-text { max-height: 9em; overflow: auto; font-style: italic; margin-top: 2px; }
+.la-call.err { color: var(--la-err); }
+.la-agent-select { width: auto; padding: 2px 8px; font-size: 11px; }
+/* Custom-instruction preset switcher, beside the agent picker. Capped so a
+   long preset name cannot push the model chip out of the header. */
+.la-ci-select { width: auto; max-width: 190px; padding: 2px 8px; font-size: 11px; }
+.la-model-select { width: auto; max-width: 260px; padding: 2px 8px; font-size: 11px; }
+.la-compose-row textarea.la-input { display: block; resize: none; overflow-y: hidden; }
+
+/* ---- Preferences: what the static preview never needed. Row heights are kept equal to the preview's
+   (the extra controls sit inside the existing row height) so the modal lays out identically. ---------- */
+.la-err { color: var(--la-err); }
+.la-row-x { flex: none; margin-left: 6px; padding: 0 5px; border: 0; background: none; color: var(--la-text-muted); font-size: 13px; line-height: 1; cursor: pointer; border-radius: var(--la-r-sm); }
+.la-row-x:hover { color: var(--la-text); background: var(--la-input); }
+.la-row-x.warn { color: var(--la-err); font: 700 11px var(--la-font-body); }
+.la-keyrow[data-act] { cursor: pointer; }
+.la-keyrow[data-act]:hover:not(.on) { border-color: var(--la-border); }
+.la-check[data-act] { cursor: pointer; }
+.la-check[data-act][aria-disabled="true"] { cursor: default; opacity: 0.4; }
+.la-subpanel { margin: 0 0 var(--la-s3); padding: 10px 12px; border: 1px dashed var(--la-border-soft); border-radius: var(--la-r-md); }
+.la-toolgroup { margin-top: var(--la-s3); }
+.la-toolgroup-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
+.la-tool { display: block; padding: 1px 0 1px 6px; font: 12px var(--la-font-mono); color: var(--la-text-muted); }
+.la-tool input { accent-color: var(--la-accent); margin-right: 6px; }
+.la-ttscard { padding: 8px 10px; margin-bottom: 8px; background: var(--la-surface); border: var(--la-border-w) solid var(--la-border-soft); border-radius: var(--la-r-md); }
+.la-ttshead { display: flex; align-items: center; gap: 8px; }
+.la-ttshead b { flex: 1; cursor: pointer; }
+.la-saved { margin-left: auto; margin-right: 12px; font-size: 11px; }
+.la-restart { margin: 6px 0 0; }
+.la-agent-pick { width: auto; flex: 1; }
+.la-prefs-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.la-prefs-foot p { margin: 0; font-size: 11.5px; }
+.la-prefs-foot code { font-family: var(--la-font-mono); }
+.la-settings .la-runrow { flex-wrap: wrap; }
+
+/* ---- "Add to Live Set" slot picker: the Preferences modal's parts, narrower, above it if both are open ------------------ */
+.la-place-scrim { z-index: 40; }
+.la-modal.la-place { z-index: 50; width: min(440px, 92vw); }
+.la-place .la-slots { max-height: min(46vh, 340px); margin-bottom: var(--la-s3); }
+.la-place .la-keyrow { margin-bottom: 6px; }
+
+/* Spend approval. The value column wraps and scrolls because one of the rows is the
+   full text being generated -- truncating it would hide what the user is approving. */
+.la-modal.la-confirm { width: min(520px, 94vw); }
+.la-confirm .la-crows { max-height: min(40vh, 300px); margin-bottom: var(--la-s3); }
+.la-confirm .la-crow { display: flex; gap: var(--la-s3); padding: 6px 0; border-bottom: 1px solid var(--la-border-soft); }
+.la-confirm .la-crow:last-child { border-bottom: 0; }
+.la-confirm .la-clabel { flex: 0 0 82px; color: var(--la-text-muted); font-size: 12px; }
+.la-confirm .la-cvalue { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+.la-slot-n { min-width: 1.4em; font: 700 12px var(--la-font-mono); }
+.la-slot-name { color: var(--la-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.la-keyrow.on .la-slot-name { color: var(--la-text); }
+.la-note.la-warn { border-left-color: var(--la-warn); background: color-mix(in srgb, var(--la-warn) 16%, transparent); color: var(--la-warn-ink); }
+.la-note[hidden] { display: none; }
+
+/* ---- Text people want to copy ----------------------------------------------------------------
+   pywebview injects `body { user-select: none; cursor: default }` (text_select=False) so buttons, cards
+   and tracks never start a selection when dragged. Reading surfaces opt back in here. */
+.la-bubble, .la-bubble *, .la-sys, .la-result, .la-result *, .la-note, .la-lede, .la-code, .la-logline, .la-logline *,
+.la-pop, .la-pop *, .la-msg-text, .la-msg-text * { -webkit-user-select: text; user-select: text; cursor: text; }
+.la-note .la-btn, .la-bubble summary { -webkit-user-select: none; user-select: none; cursor: pointer; }

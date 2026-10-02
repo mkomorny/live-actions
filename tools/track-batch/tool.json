@@ -1,0 +1,38 @@
+{
+  "id": "track-batch",
+  "name": "Track Batch",
+  "description": "Rename, arm, mute, or set a send on the ticked tracks.",
+  "accent": "#34d399",
+  "version": "1.0",
+  "enabled": true,
+  "fields": [
+    {
+      "id": "action",
+      "label": "Action: rename, arm, unarm, mute, unmute, send",
+      "type": "text",
+      "default": "rename",
+      "hint": "Choose: rename, arm, unarm, mute, unmute, or send."
+    },
+    {
+      "id": "pattern",
+      "label": "Rename pattern ({name} {kind} {index})",
+      "type": "text",
+      "default": "{name}",
+      "hint": "Used when action is rename. Tokens: {name} = original name, {kind} = track type, {index} = track number."
+    },
+    {
+      "id": "send",
+      "label": "Send letter if action is send (A, B, C…)",
+      "type": "text",
+      "default": "A",
+      "hint": "Used when action is send. Enter the send return letter: A, B, C, etc."
+    },
+    {
+      "id": "value",
+      "label": "Send amount 0-1 (or 0-100)",
+      "type": "text",
+      "default": "0.5",
+      "hint": "Used when action is send. Amount from 0 (silent) to 1 (full). You can also use 0–100."
+    }
+  ]
+}

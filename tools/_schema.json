@@ -1,0 +1,16 @@
+{
+  "id": "clip-namer",
+  "name": "Clip Namer",
+  "description": "One-line description shown on the main screen and on the tool page.",
+  "accent": "#3b82f6",
+  "version": "1.0",
+  "enabled": true,
+  "fields": [
+    {
+      "id": "pattern",
+      "label": "Name pattern",
+      "type": "text",
+      "default": "{track} {bar}"
+    }
+  ]
+}

@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fill Forge</title>
+  <style>
+    /* ===== Fill Forge theme system ========================================
+       Own identity — NOT Midnight Tools. Warm Ignite default (gold→orange) on
+       a cool charcoal base, with a per-theme velocity heat ramp. Everything
+       visual flows through these custom properties; body[data-theme] swaps the
+       accent + heat set. The canvas reads the heat/playhead vars via
+       getComputedStyle (see main.ts) and repaints on theme change.
+       Palettes are authoritative in design/themes.md. Ignite is :root. */
+    :root {
+      /* shared charcoal structure (all themes) */
+      --bg-0: #14161D; --bg-1: #08090C;
+      --surface: #15171E; --inset: #0C0D12;
+      --border: #242732; --border-hi: #313542;
+      --text: #ECEEF2; --dim: #7E8596;
+      --pad-empty: #181B23; --snare-row: #1A130C;
+      --on-accent: #10121A; /* active-state text stays dark on the accent */
+
+      /* Ignite (default) */
+      --accent-a: #FFD56A; --accent-b: #FF8C32; --accent-soft: #FFB85C;
+      --playhead: #FFFFFF; --playhead-glow: #FF8C32;
+      --heat-0: #7E4A1C; --heat-1: #B86A22; --heat-2: #F0852C;
+      --heat-3: #FFA63D; --heat-4: #FFC559; --heat-5: #FFE6A0;
+      --tile-bg: #2A1E0A; --tile-stroke: #FF8C32; --tile-icon: #FF8C32; --tile-text: #FFE0B0;
+    }
+    body[data-theme="plasma"] {
+      --accent-a: #22D3EE; --accent-b: #7C3AED; --accent-soft: #5FD0F0;
+      --playhead: #FFFFFF; --playhead-glow: #7C3AED;
+      --heat-0: #2A2466; --heat-1: #3E3A9E; --heat-2: #4F66D8;
+      --heat-3: #3FA8E0; --heat-4: #35D0E8; --heat-5: #CFFBFF;
+      --tile-bg: #161033; --tile-stroke: #7C3AED; --tile-icon: #A78BFA; --tile-text: #D9CFF7;
+    }
+    body[data-theme="acid"] {
+      --accent-a: #A3E635; --accent-b: #14B8A6; --accent-soft: #A8E63C;
+      --playhead: #FFFFFF; --playhead-glow: #14B8A6;
+      --heat-0: #234A1E; --heat-1: #3A6B22; --heat-2: #5E9A28;
+      --heat-3: #86C72F; --heat-4: #A8E63C; --heat-5: #E8FBC0;
+      --tile-bg: #0E2418; --tile-stroke: #14B8A6; --tile-icon: #34D399; --tile-text: #C8F5DC;
+    }
+    body[data-theme="ember"] {
+      --accent-a: #FF6A3D; --accent-b: #FF2D8E; --accent-soft: #FF8A5C;
+      --playhead: #FFFFFF; --playhead-glow: #FF2D8E;
+      --heat-0: #5E1E2A; --heat-1: #8A2A38; --heat-2: #C23A4E;
+      --heat-3: #FF5A3D; --heat-4: #FF3D7F; --heat-5: #FFD9E6;
+      --tile-bg: #2A0E16; --tile-stroke: #FF2D8E; --tile-icon: #FF6A8E; --tile-text: #FFD0DE;
+    }
+    body[data-theme="mono"] {
+      --accent-a: #FFFFFF; --accent-b: #9AA0AD; --accent-soft: #C9CDD6;
+      --playhead: #FFFFFF; --playhead-glow: #9AA0AD;
+      --heat-0: #2A2E36; --heat-1: #3E434D; --heat-2: #5A606C;
+      --heat-3: #828893; --heat-4: #B6BBC7; --heat-5: #FFFFFF;
+      --tile-bg: #1A1C22; --tile-stroke: #C9CDD6; --tile-icon: #ECEEF2; --tile-text: #ECEEF2;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    * { margin: 0; }
+    /* No default blue/white focus rings — theme handles focus where it matters. */
+    *:focus, *:focus-visible { outline: none; }
+    button::-moz-focus-inner { border: 0; }
+    html, body { height: 100%; }
+    body {
+      /* vertical: accent-b (orange) at top → accent-a (gold) at bottom, per the mockup */
+      --grad-accent: linear-gradient(180deg, var(--accent-b), var(--accent-a));
+      background: radial-gradient(120% 130% at 50% 0%, var(--bg-0) 0%, var(--bg-1) 72%);
+      color: var(--text);
+      font-family: "AbletonSansSmall", system-ui, -apple-system, sans-serif;
+      font-size: 12px; -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: column; overflow: hidden; user-select: none;
+    }
+
+    /* ---- header ---------------------------------------------------------- */
+    header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px; border-bottom: 1px solid var(--border);
+    }
+    .logo { width: 30px; height: 18px; flex: none; }
+    .logo rect { transition: fill .2s; }
+    .title { display: flex; flex-direction: column; gap: 1px; }
+    .wordmark {
+      font-size: 16px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; line-height: 1.05;
+      background: var(--grad-accent);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .tagline { font-size: 10px; color: var(--dim); letter-spacing: .2px; }
+    .clip-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--inset); border: 1px solid var(--border); color: var(--dim);
+      font-size: 11px; max-width: 280px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    .clip-chip b { color: var(--text); font-weight: 600; }
+    .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-b); flex: none; }
+    .spacer { flex: 1; }
+    .icon-btn {
+      width: 30px; height: 30px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; border-radius: 7px; border: 1px solid var(--border); background: var(--inset);
+      color: var(--accent-soft); cursor: pointer;
+    }
+    .icon-btn:hover { border-color: var(--border-hi); }
+    .icon-btn svg { width: 16px; height: 16px; }
+
+    /* theme popout */
+    #themePop {
+      position: fixed; z-index: 40; min-width: 168px;
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: 10px; padding: 6px; box-shadow: 0 14px 40px rgba(0,0,0,.55);
+    }
+    #themePop[hidden] { display: none; }
+    .theme-row {
+      display: flex; align-items: center; gap: 9px; width: 100%;
+      padding: 7px 9px; border-radius: 7px; border: 1px solid transparent;
+      background: transparent; color: var(--text); cursor: pointer; font: inherit;
+    }
+    .theme-row:hover { background: var(--inset); }
+    .theme-row.active { border-color: var(--border-hi); background: var(--inset); }
+    .theme-row .sw { width: 26px; height: 14px; border-radius: 4px; flex: none; }
+    .theme-row .nm { flex: 1; text-align: left; }
+    .theme-row .ck { color: var(--accent-soft); opacity: 0; }
+    .theme-row.active .ck { opacity: 1; }
+
+    /* ---- body split ------------------------------------------------------ */
+    main { flex: 1; display: flex; gap: 18px; padding: 16px 18px; min-height: 0; }
+    .controls { width: 320px; flex: none; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+    .preview { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+    .group { display: flex; flex-direction: column; gap: 5px; }
+    .group > .label,
+    .lane-label {
+      font-size: 10.5px; font-weight: 600; letter-spacing: .6px;
+      text-transform: uppercase; color: var(--dim);
+    }
+
+    /* genre chips */
+    .chip-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+    .chip {
+      padding: 5px 6px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--dim); cursor: pointer; font: inherit;
+      font-size: 11px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chip:hover { border-color: var(--border-hi); color: var(--text); }
+    .chip.active {
+      background: var(--grad-accent); color: var(--on-accent);
+      border-color: transparent; font-weight: 600;
+    }
+
+    /* technique tiles — 2-col horizontal pills (icon left of label) */
+    .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .tile {
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
+      padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--dim); cursor: pointer; font: inherit;
+    }
+    .tile:hover { border-color: var(--border-hi); color: var(--text); }
+    .tile svg { width: 15px; height: 15px; flex: none; stroke: currentColor; fill: none; }
+    .tile .tname { font-size: 11px; line-height: 1.1; text-align: left; }
+    .tile.active {
+      background: var(--tile-bg); border-color: var(--tile-stroke); color: var(--tile-text);
+    }
+    .tile.active svg { stroke: var(--tile-icon); }
+
+    /* segmented controls */
+    .seg { display: inline-flex; background: var(--inset); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 0; }
+    .seg.fill { display: flex; }
+    .seg button {
+      flex: 1; border: 1px solid transparent; background: transparent; color: var(--dim);
+      padding: 4px 11px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 11px; white-space: nowrap;
+    }
+    .seg button:hover { color: var(--text); }
+    .seg button.active {
+      background: var(--grad-accent); color: var(--on-accent); font-weight: 600;
+    }
+    .dropdown {
+      -webkit-appearance: none; appearance: none;
+      border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+      color: var(--text); font: inherit; font-size: 11px; padding: 3px 22px 3px 9px;
+      background-color: var(--inset);
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237E8596' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+      background-repeat: no-repeat; background-position: right 6px center;
+    }
+    .dropdown:hover { border-color: var(--border-hi); }
+    .dropdown:focus { border-color: var(--accent-b); }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .row .label { font-size: 11px; color: var(--dim); }
+
+    /* sliders — full width, label + value above the track */
+    .sliders { display: flex; flex-direction: column; gap: 6px; }
+    .slider { display: flex; flex-direction: column; gap: 3px; }
+    .slider .srow { display: flex; align-items: baseline; justify-content: space-between; }
+    .slider .sname { font-size: 10.5px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--dim); }
+    .slider .sval { font-size: 11px; color: var(--accent-soft); font-variant-numeric: tabular-nums; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 7px; border-radius: 4px;
+      border: none; outline: none; cursor: pointer;
+      /* --val (0..100) drives a solid-orange filled track up to the knob (matches mockup) */
+      background:
+        linear-gradient(var(--accent-b), var(--accent-b)) no-repeat,
+        var(--inset);
+      background-size: var(--val, 50%) 100%, 100% 100%;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 15px; height: 15px; border-radius: 50%;
+      background: #FFFFFF; border: none; cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+    }
+
+    .actions { display: flex; gap: 9px; margin-top: 2px; }
+    .actions button {
+      flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--text); cursor: pointer; font: inherit; font-weight: 600;
+    }
+    .actions button:hover { border-color: var(--accent-b); color: var(--accent-soft); }
+    .actions button svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+
+    /* ---- preview --------------------------------------------------------- */
+    .ruler { height: 16px; position: relative; color: var(--dim); font-size: 9.5px; }
+    .ruler .tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--border); padding-left: 4px; }
+    .ruler .tick.beat { border-left-color: var(--border-hi); }
+    .canvas-wrap {
+      position: relative; background: var(--inset); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+    }
+    .canvas-wrap.roll { flex: 1; min-height: 200px; }
+    .canvas-wrap.lane { height: 76px; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .ptitle { display: flex; align-items: baseline; gap: 8px; }
+    .plabel { font-size: 10.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--dim); }
+    .pdetail { font-size: 10.5px; color: var(--dim); }
+    .pdetail b { color: var(--text); font-weight: 600; }
+    .ph-right { display: flex; align-items: center; gap: 12px; }
+    .vel-legend { display: flex; align-items: center; gap: 4px; }
+    .vel-legend .lbl { font-size: 9.5px; color: var(--dim); }
+    .vel-legend .sw { width: 11px; height: 11px; border-radius: 2px; }
+    #auditionTop {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px;
+      border-radius: 7px; border: 1px solid var(--border); background: var(--inset);
+      color: var(--accent-soft); cursor: pointer; font: inherit; font-weight: 600; font-size: 11px;
+    }
+    #auditionTop:hover { border-color: var(--accent-b); }
+    #auditionTop.playing { background: var(--grad-accent); color: var(--on-accent); border-color: transparent; }
+    .lane-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .lane-sub { font-size: 9.5px; color: var(--dim); }
+
+    .audition-row { display: flex; align-items: center; gap: 12px; }
+    #audition {
+      width: 30px; height: 30px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 7px; border: 1px solid var(--border); background: var(--inset);
+      color: var(--accent-soft); cursor: pointer; font: inherit; font-size: 12px;
+    }
+    #audition:hover { border-color: var(--accent-b); }
+    #audition.playing { background: var(--grad-accent); color: var(--on-accent); border-color: transparent; }
+    #scrub { flex: 1; }
+    .pos-readout { font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
+
+    /* ---- footer ---------------------------------------------------------- */
+    footer {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 18px; border-top: 1px solid var(--border);
+    }
+    footer .targets-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    footer .seg { flex-wrap: wrap; }
+    footer .targets-wrap .label { font-size: 11px; color: var(--dim); }
+    footer button.btn {
+      padding: 8px 18px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--text); cursor: pointer; font: inherit;
+    }
+    footer button.btn:hover { border-color: var(--border-hi); }
+    footer button#insert {
+      border-color: transparent; color: var(--on-accent); font-weight: 700;
+      background: var(--grad-accent);
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    footer button#insert svg { width: 14px; height: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <svg class="logo" id="logo" viewBox="0 0 30 18" aria-hidden="true"></svg>
+    <div class="title">
+      <span class="wordmark">Fill Forge</span>
+      <span class="tagline">transitional drum fills</span>
+    </div>
+    <span class="spacer"></span>
+    <span class="clip-chip" id="clipChip">…</span>
+    <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="13.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="17.5" cy="10.5" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="8.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="6.5" cy="12.5" r="1.5" fill="currentColor" stroke="none"/>
+        <path d="M12 2C6.5 2 2 6 2 11c0 5 4 7 7 7 1.5 0 2-1 2-2 0-1.5 1-2 2-2h3c2.5 0 4-2 4-5 0-4-4-7-8-7z"/>
+      </svg>
+    </button>
+    <div id="themePop" hidden>
+      <div id="themeList"></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls">
+      <div class="group">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div class="label">Genre</div>
+          <select class="dropdown" id="genreCat" aria-label="Genre category"></select>
+        </div>
+        <div class="chip-grid" id="genreGrid"></div>
+      </div>
+      <div class="group">
+        <div class="label">Technique</div>
+        <div class="tile-grid" id="techGrid"></div>
+      </div>
+      <div class="group">
+        <div class="label">Length</div>
+        <div class="seg fill" id="lengthSeg"></div>
+      </div>
+      <div class="group">
+        <div class="label">Context</div>
+        <div class="seg fill" id="contextSeg"></div>
+      </div>
+      <div class="group">
+        <div class="sliders" id="sliders"></div>
+      </div>
+      <div class="actions">
+        <button id="reshuffle">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l3 4M3 17h4l9-12h5M14 5l3-2v4M21 17h-5l-2-3M18 15l3 2-3 2"/></svg>
+          Reshuffle
+        </button>
+        <button id="variations">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h6v6H5zM13 13h6v6h-6zM5 13h6M16 5v6"/></svg>
+          Variations
+        </button>
+      </div>
+    </section>
+
+    <section class="preview">
+      <div class="preview-head">
+        <div class="ptitle"><span class="plabel">Preview</span><span class="pdetail" id="previewDetail"></span></div>
+        <div class="ph-right">
+          <div class="vel-legend" id="velLegend"></div>
+          <button id="auditionTop"><span id="audTopIcon">▶</span><span id="audTopLabel">Audition</span></button>
+        </div>
+      </div>
+      <div class="ruler" id="ruler"></div>
+      <div class="canvas-wrap roll"><canvas id="roll"></canvas></div>
+      <div class="lane-head">
+        <span class="lane-label">Build-up</span>
+        <span class="lane-sub">velocity accelerates → downbeat</span>
+      </div>
+      <div class="canvas-wrap lane"><canvas id="buildup"></canvas></div>
+      <div class="audition-row">
+        <button id="audition" title="Play / pause"><span id="audIcon">▶</span></button>
+        <input type="range" id="scrub" min="0" max="1000" value="0" />
+        <span class="pos-readout" id="posReadout">bar 1.1</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="targets-wrap">
+      <span class="label">Insert as</span>
+      <div class="seg" id="targets"></div>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn" id="cancel">Cancel</button>
+    <button class="btn" id="insert" autofocus>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
+      Insert fill
+    </button>
+  </footer>
+
+  <script>
+    // The host injects the per-invocation FillContext here at dialog time.
+    window.__CTX__ = __CTX_JSON__;
+  </script>
+  <script>(() => {
+  // src/protocol.ts
+  var TARGET_LABELS = {
+    newClip: "New clip",
+    replace: "Replace",
+    newTrack: "New track",
+    append: "Append to end",
+    playhead: "At playhead"
+  };
+  var LIVE_ACTIONS_TARGETS = [
+    "newClip",
+    "replace",
+    "append",
+    "newTrack",
+    "playhead"
+  ];
+
+  // src/rhythm.ts
+  function swing(notes, amount, subdivision = 0.5) {
+    if (amount <= 0) return notes.map((n) => ({ ...n }));
+    const shiftMax = subdivision / 3;
+    return notes.map((n) => {
+      const idx = Math.round(n.startTime / subdivision);
+      const onGrid = Math.abs(n.startTime - idx * subdivision) < 1e-6;
+      if (!onGrid || idx % 2 === 0) return { ...n };
+      const shift = amount * shiftMax;
+      return { ...n, startTime: n.startTime + shift, duration: Math.max(1e-4, n.duration - shift) };
+    });
+  }
+  function humanize(notes, timing = 0.02, vel = 8) {
+    return notes.map((n, i) => {
+      const h = i * 2654435761 + n.pitch * 40503 >>> 0;
+      const tNudge = (h % 5 - 2) / 2 * timing;
+      const vNudge = (h >>> 3) % (2 * vel + 1) - vel;
+      return {
+        ...n,
+        startTime: Math.max(0, n.startTime + tNudge),
+        velocityDeviation: vNudge
+      };
+    });
+  }
+
+  // src/drumvoices.ts
+  var DRUM_VOICES = [
+    "kick",
+    "rim",
+    "snare",
+    "clap",
+    "lowTom",
+    "midTom",
+    "hiTom",
+    "closedHat",
+    "pedalHat",
+    "openHat",
+    "ride",
+    "crash"
+  ];
+  var VOICE_LABELS = {
+    kick: "Kick",
+    rim: "Rim",
+    snare: "Snare",
+    clap: "Clap",
+    lowTom: "Low Tom",
+    midTom: "Mid Tom",
+    hiTom: "Hi Tom",
+    closedHat: "Closed Hat",
+    pedalHat: "Pedal Hat",
+    openHat: "Open Hat",
+    ride: "Ride",
+    crash: "Crash"
+  };
+  var GM_MAP = {
+    kick: 36,
+    rim: 37,
+    snare: 38,
+    clap: 39,
+    lowTom: 45,
+    midTom: 48,
+    hiTom: 50,
+    closedHat: 42,
+    pedalHat: 44,
+    openHat: 46,
+    ride: 51,
+    crash: 49
+  };
+  var CHROMATIC_MAP = Object.fromEntries(
+    DRUM_VOICES.map((v, i) => [v, 36 + i])
+  );
+
+  // src/patterns.ts
+  var VEL = { O: 124, X: 106, x: 84, n: 64, o: 34 };
+  function lane(voice, str, sub, orn) {
+    const hits2 = [];
+    let step = 0;
+    for (const ch of str) {
+      if (ch === "|") continue;
+      if (ch === "." || ch === " ") {
+        step++;
+        continue;
+      }
+      const vel = VEL[ch];
+      if (vel !== void 0) hits2.push({ voice, pos: step / sub, vel, ...orn ? { orn } : {} });
+      step++;
+    }
+    return hits2;
+  }
+  function fig(id, kind, lengthBeats2, sub, lanes) {
+    const hits2 = [];
+    for (const [key, str] of Object.entries(lanes)) {
+      if (str === void 0) continue;
+      const flam = key.endsWith("~");
+      const voice = flam ? key.slice(0, -1) : key;
+      hits2.push(...lane(voice, str, sub, flam ? "flam" : void 0));
+    }
+    hits2.sort((a, b) => a.pos - b.pos || a.voice.localeCompare(b.voice));
+    return { id, kind, lengthBeats: lengthBeats2, sub, hits: hits2 };
+  }
+  var groove = (id, sub, lanes, bars = 1) => fig(id, "groove", bars * 4, sub, lanes);
+  var fill = (id, beats, sub, lanes) => fig(id, "fill", beats, sub, lanes);
+  var HOUSE = {
+    swing: 0.08,
+    resolve: "crash",
+    grooves: [
+      groove("house_four", 4, {
+        kick: "X...|X...|X...|X...",
+        clap: "....|X...|....|X...",
+        closedHat: "..x.|..x.|..x.|..x."
+      }),
+      groove("house_skip", 4, {
+        kick: "X...|X...|X...|X...",
+        clap: "....|X...|....|X...",
+        closedHat: "x.x.|x.x.|x.x.|x.x.",
+        openHat: "..o.|..o.|..o.|..o."
+      })
+    ],
+    fills: [
+      fill("house_clapbuild", 1, 4, { clap: "nxXO" }),
+      fill("house_snareroll", 1, 4, { snare: "xxXO" }),
+      fill("house_hatlift", 1, 4, { closedHat: "x.x.", openHat: "...O" }),
+      fill("house_tomdrop", 2, 4, { midTom: "x...|x...", lowTom: "....|x...", snare: "....|..X." }),
+      fill("house_clapsnare", 2, 4, { clap: "x...|x.x.", snare: "..o.|..oX" })
+    ]
+  };
+  var TECHNO = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("techno_drive", 4, {
+        kick: "X...|X...|X...|X...",
+        openHat: "..x.|..x.|..x.|..x.",
+        rim: "....|x...|....|x..."
+      }),
+      groove("techno_clap", 4, {
+        kick: "X...|X...|X...|X...",
+        clap: "....|X...|....|X...",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      })
+    ],
+    fills: [
+      fill("techno_rumble", 2, 4, { kick: "X.X.|X.XX", closedHat: "x.x.|x.x." }),
+      fill("techno_tomroll", 2, 4, { midTom: "x.x.|X.x.", lowTom: "..x.|..XO" }),
+      fill("techno_clave", 2, 4, { rim: "x..x|..x.", clap: "....|X..O" }),
+      fill("techno_hatdrive", 1, 4, { closedHat: "xXxO" })
+    ]
+  };
+  var DNB = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("dnb_amen", 4, {
+        kick: "X...|..X.|..X.|....",
+        snare: "....|X.o.|..o.|X.o.",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      }),
+      groove("dnb_twostep", 4, {
+        kick: "X...|....|..X.|....",
+        snare: "....|X...|....|X...",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      })
+    ],
+    fills: [
+      fill("dnb_snarechop", 2, 4, { snare: "X.oX|o.XO" }),
+      fill("dnb_doubles", 2, 4, { snare: "Xo.X|o.XX", kick: "....|X..." }),
+      fill("dnb_rollup", 1, 6, { snare: "oxXXOO" }),
+      fill("dnb_break", 2, 4, { snare: "X.o.|XoXO", kick: "..X.|...." })
+    ]
+  };
+  var TRAP = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("trap_half", 4, {
+        kick: "X...|....|X.X.|....",
+        clap: "....|....|X...|....",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      }),
+      groove("trap_rolls", 4, {
+        kick: "X...|...X|..X.|....",
+        clap: "....|....|X...|....",
+        closedHat: "xxxx|xxxx|xxxx|xxxx"
+      })
+    ],
+    fills: [
+      fill("trap_hatroll32", 1, 6, { closedHat: "xxXxXO" }),
+      fill("trap_triplet", 2, 3, { closedHat: "xxX|xxX", clap: "...|..O" }),
+      fill("trap_snareroll", 1, 6, { snare: "ooxXXO" }),
+      fill("trap_808slide", 2, 4, { kick: "X...|..X.", clap: "....|X..O" })
+    ]
+  };
+  var BREAKBEAT = {
+    swing: 0.12,
+    resolve: "crash",
+    grooves: [
+      groove("break_funk", 4, {
+        kick: "X..X|....|..X.|....",
+        snare: "....|X.o.|....|Xo..",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      }),
+      groove("break_amen", 4, {
+        kick: "X...|..X.|.X..|....",
+        snare: "....|Xo.o|..X.|o.X.",
+        openHat: "....|..o.|....|..o."
+      })
+    ],
+    fills: [
+      fill("break_chop", 2, 4, { snare: "X.oX|.oXO", kick: "..X.|...." }),
+      fill("break_linear", 2, 4, { kick: "X...|.X..", snare: "..X.|...X", midTom: "....|X..." }),
+      fill("break_tomtumble", 2, 4, { hiTom: "x.x.|....", midTom: "....|xx..", lowTom: "......XO" })
+    ]
+  };
+  var AMBIENT = {
+    swing: 0.05,
+    resolve: "ride",
+    grooves: [
+      groove("amb_pulse", 4, {
+        kick: "X...|....|X...|....",
+        closedHat: "....|n...|....|n...",
+        rim: "....|....|..n.|...."
+      })
+    ],
+    fills: [
+      fill("amb_swell", 2, 4, { midTom: "n...|..n.", ride: "....|...n" }),
+      fill("amb_softroll", 2, 4, { snare: "o.o.|o.nx" }),
+      fill("amb_rimtick", 2, 4, { rim: "n..n|.n.x", lowTom: "....|...n" })
+    ]
+  };
+  var ROCK = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("rock_basic", 4, {
+        kick: "X...|..X.|X...|....",
+        snare: "....|X...|....|X...",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      }),
+      groove("rock_drive", 4, {
+        kick: "X..X|....|X..X|....",
+        snare: "....|X...|....|X...",
+        closedHat: "X.X.|X.X.|X.X.|X.X."
+      })
+    ],
+    fills: [
+      fill("rock_tomdown", 2, 4, { snare: "XX..|....", hiTom: "..XX|....", midTom: "....|XX..", lowTom: "....|..XX" }),
+      fill("rock_snare16", 1, 4, { snare: "xXxO" }),
+      fill("rock_crashstop", 2, 4, { snare: "X...|X..X", midTom: "....|..X.", lowTom: "......X." })
+    ]
+  };
+  var FUNK = {
+    swing: 0.1,
+    resolve: "crash",
+    grooves: [
+      groove("funk_16", 4, {
+        kick: "X..X|..X.|X...|..X.",
+        snare: "....|Xo.o|..o.|Xo..",
+        closedHat: "xXxx|xXxx|xXxx|xXxx"
+      })
+    ],
+    fills: [
+      fill("funk_linear", 2, 4, { kick: "X...|.X..", snare: "..oX|o..X", hiTom: "....|..X." }),
+      fill("funk_ghost", 2, 4, { snare: "oXoo|XooX", closedHat: "x.x.|x.x." }),
+      fill("funk_tomtumble", 2, 4, { snare: "X.o.|....", hiTom: "..x.|x...", midTom: "....|.x.x", lowTom: "......XO" })
+    ]
+  };
+  var JAZZ = {
+    swing: 0,
+    // authored on the triplet grid already
+    resolve: "ride",
+    grooves: [
+      groove("jazz_swing", 3, {
+        ride: "X..|X.x|X..|X.x",
+        pedalHat: "...|X..|...|X.."
+      })
+    ],
+    fills: [
+      fill("jazz_comp", 2, 3, { snare: "o.X|..o", midTom: "...|X..", ride: "X..|..x" }),
+      fill("jazz_trade", 2, 3, { snare: "X.o|X.o", hiTom: "..X|...", lowTom: "...|.X." }),
+      fill("jazz_brush", 2, 3, { snare: "x.x|x.X", ride: "X..|X.." })
+    ]
+  };
+  var METAL = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("metal_double", 4, {
+        kick: "X.X.|X.X.|X.X.|X.X.",
+        snare: "....|X...|....|X...",
+        closedHat: "X...|X...|X...|X..."
+      })
+    ],
+    fills: [
+      fill("metal_tomblast", 2, 4, { hiTom: "XX..|....", midTom: "..XX|....", lowTom: "....|XXXX", kick: "X.X.|X.X." }),
+      fill("metal_snareblast", 1, 4, { snare: "XXXX", kick: "X.X." }),
+      fill("metal_gallop", 2, 4, { kick: "XXxX|XxXX", snare: "....|...X" })
+    ]
+  };
+  var LATIN = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("latin_songo", 4, {
+        kick: "X..X|..X.|X..X|..X.",
+        rim: "..x.|.x..|x...|x.x.",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      })
+    ],
+    fills: [
+      fill("latin_tomconga", 2, 4, { hiTom: "x.X.|.x.x", midTom: "..x.|X.x.", lowTom: "....|..XO" }),
+      fill("latin_clave", 2, 4, { rim: "x.x.|.x.x", clap: "....|X..O" }),
+      fill("latin_tumbao", 2, 4, { lowTom: "x..x|..x.", hiTom: "..x.|x..X" })
+    ]
+  };
+  var HIPHOP = {
+    swing: 0.18,
+    resolve: "crash",
+    grooves: [
+      groove("hiphop_boombap", 4, {
+        kick: "X...|....|X.X.|....",
+        snare: "....|X...|....|X...",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      })
+    ],
+    fills: [
+      fill("hiphop_snareroll", 2, 4, { snare: "x.xo|X.xO", kick: "X...|...." }),
+      fill("hiphop_flamsnare", 2, 4, { "snare~": "X...|..X.", kick: "..X.|....", snare: "....|...X" }),
+      fill("hiphop_tomdrop", 2, 4, { snare: "X...|....", midTom: "..x.|x...", lowTom: "....|.X.O" })
+    ]
+  };
+  var RNB = {
+    swing: 0.14,
+    resolve: "ride",
+    grooves: [
+      groove("rnb_groove", 4, {
+        kick: "X...|..X.|..X.|....",
+        snare: "....|X.o.|..o.|X...",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      })
+    ],
+    fills: [
+      fill("rnb_ghostfill", 2, 4, { snare: "oXoo|Xo.X", closedHat: "x.x.|x.x." }),
+      fill("rnb_tomsoul", 2, 4, { snare: "X.o.|....", midTom: "....|x.x.", lowTom: "......XO" }),
+      fill("rnb_rimtick", 2, 4, { rim: "x.x.|x.x.", snare: "....|...X" })
+    ]
+  };
+  var REGGAE = {
+    swing: 0.05,
+    resolve: "crash",
+    grooves: [
+      groove("reggae_onedrop", 4, {
+        kick: "....|....|X...|....",
+        rim: "....|....|X...|....",
+        closedHat: "..x.|..x.|..x.|..x."
+      })
+    ],
+    fills: [
+      fill("reggae_rimroll", 2, 4, { rim: "x.x.|xXxO" }),
+      fill("reggae_tomfall", 2, 4, { hiTom: "x...|x...", midTom: "..x.|..x.", lowTom: "....|..XO" }),
+      fill("reggae_snaredrop", 2, 4, { snare: "....|X..O", rim: "x.x.|...." })
+    ]
+  };
+  var DISCO = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("disco_four", 4, {
+        kick: "X...|X...|X...|X...",
+        clap: "....|X...|....|X...",
+        openHat: "..x.|..x.|..x.|..x.",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      })
+    ],
+    fills: [
+      fill("disco_tomroll", 2, 4, { hiTom: "x.x.|x.x.", midTom: "....|x.x.", lowTom: "......XO" }),
+      fill("disco_snarebuild", 1, 4, { snare: "xxXO" }),
+      fill("disco_clapbuild", 2, 4, { clap: "x.x.|xXxO", openHat: "....|...O" })
+    ]
+  };
+  var POP = {
+    swing: 0,
+    resolve: "crash",
+    grooves: [
+      groove("pop_basic", 4, {
+        kick: "X...|....|X.X.|....",
+        snare: "....|X...|....|X...",
+        closedHat: "x.x.|x.x.|x.x.|x.x."
+      })
+    ],
+    fills: [
+      fill("pop_tomfill", 2, 4, { snare: "X.X.|....", midTom: "....|X.X.", lowTom: "......XO" }),
+      fill("pop_snarebuild", 1, 4, { snare: "nxXO" }),
+      fill("pop_crashstop", 2, 4, { snare: "X...|...X", hiTom: "....|.X.." })
+    ]
+  };
+  var GENRE_BANKS = {
+    melodicHouse: HOUSE,
+    darkTechno: TECHNO,
+    dnb: DNB,
+    trap: TRAP,
+    breakbeat: BREAKBEAT,
+    ambient: AMBIENT,
+    rock: ROCK,
+    funk: FUNK,
+    jazz: JAZZ,
+    metal: METAL,
+    latin: LATIN,
+    hipHop: HIPHOP,
+    rnb: RNB,
+    reggae: REGGAE,
+    disco: DISCO,
+    pop: POP
+  };
+
+  // src/fillengine.ts
+  var GENRE_LABELS = {
+    melodicHouse: "Melodic House",
+    darkTechno: "Dark Techno",
+    dnb: "Drum & Bass",
+    trap: "Trap",
+    breakbeat: "Breakbeat",
+    ambient: "Ambient",
+    rock: "Rock",
+    funk: "Funk",
+    jazz: "Jazz",
+    metal: "Metal",
+    latin: "Latin",
+    hipHop: "Hip-Hop",
+    rnb: "R&B / Soul",
+    reggae: "Reggae",
+    disco: "Disco",
+    pop: "Pop"
+  };
+  var GENRE_GROUPS = [
+    { label: "Electronic", genres: ["melodicHouse", "darkTechno", "dnb", "trap", "breakbeat", "ambient"] },
+    { label: "Acoustic", genres: ["rock", "funk", "jazz", "metal", "latin", "hipHop", "rnb", "reggae", "disco", "pop"] }
+  ];
+  var TECHNIQUE_LABELS = {
+    snareRoll: "Snare Roll",
+    tomCascade: "Tom Cascade",
+    glitchStutter: "Glitch / Stutter",
+    buildUp: "Build-Up",
+    halfTimeDropIn: "Half-Time Drop-In",
+    hatRun: "Hat Run",
+    ghostGroove: "Groove Fill"
+  };
+  var DEFAULT_FILL_SPEC = {
+    genre: "melodicHouse",
+    technique: "ghostGroove",
+    context: "groove",
+    lengthBars: 1,
+    beatsPerBar: 4,
+    intensity: 0.6,
+    density: 0.5,
+    swing: 0,
+    humTiming: 0.3,
+    humVel: 0.4,
+    seed: 1
+  };
+  var clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  var lerp = (a, b, t) => a + (b - a) * clamp(t, 0, 1);
+  var clampVel = (v) => clamp(Math.round(v), 1, 127);
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = a + 1831565813 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function buildupCurve(u, shape) {
+    const x = clamp(u, 0, 1);
+    const gamma = lerp(1, 2.6, shape);
+    return Math.pow(x, gamma);
+  }
+  function accelTimes(n, len, intensity, gammaJitter = 0) {
+    const gamma = clamp(0.9 - 0.5 * clamp(intensity, 0, 1) + gammaJitter, 0.35, 0.95);
+    const out = [];
+    for (let i = 0; i < n; i++) out.push(len * Math.pow(i / n, gamma));
+    return out;
+  }
+  function voiceDur(v) {
+    switch (v) {
+      case "kick":
+        return 0.16;
+      case "snare":
+      case "clap":
+      case "rim":
+        return 0.12;
+      case "lowTom":
+      case "midTom":
+      case "hiTom":
+        return 0.2;
+      case "closedHat":
+      case "pedalHat":
+        return 0.05;
+      case "openHat":
+        return 0.18;
+      case "ride":
+        return 0.22;
+      case "crash":
+        return 0.6;
+      default:
+        return 0.12;
+    }
+  }
+  var pick = (arr, rng) => arr[Math.floor(rng() * arr.length)];
+  function ornamentHits(h, orn) {
+    const mk = (dt, vf) => ({
+      voice: h.voice,
+      startTime: Math.max(0, h.startTime - dt),
+      duration: 0.03,
+      velocity: clampVel(h.velocity * vf)
+    });
+    switch (orn) {
+      case "flam":
+        return [mk(0.045, 0.55)];
+      case "drag":
+        return [mk(0.09, 0.4), mk(0.05, 0.45)];
+      case "ruff":
+        return [mk(0.12, 0.34), mk(0.08, 0.4), mk(0.04, 0.46)];
+      case "ghost":
+        return [];
+    }
+  }
+  function place(figure, at, velScale) {
+    const out = [];
+    for (const ph of figure.hits) {
+      const vh = {
+        voice: ph.voice,
+        startTime: at + ph.pos,
+        duration: voiceDur(ph.voice),
+        velocity: clampVel(ph.vel * velScale)
+      };
+      if (ph.orn) out.push(...ornamentHits(vh, ph.orn));
+      out.push(vh);
+    }
+    return out;
+  }
+  function layGroove(bank, beats, intensity, rng) {
+    if (beats <= 1e-6 || !bank.grooves.length) return [];
+    const cell = pick(bank.grooves, rng);
+    const vs = lerp(0.78, 0.95, intensity);
+    const out = [];
+    for (let t = 0; t < beats - 1e-6; t += cell.lengthBeats) {
+      for (const ph of cell.hits) {
+        if (t + ph.pos < beats - 1e-6) {
+          out.push({ voice: ph.voice, startTime: t + ph.pos, duration: voiceDur(ph.voice), velocity: clampVel(ph.vel * vs) });
+        }
+      }
+    }
+    return out;
+  }
+  function rollFill(spec2, window2, rng, voice, resolveVoice) {
+    const perBar = lerp(8, 30, spec2.density);
+    const n = Math.max(3, Math.round(perBar * window2 / spec2.beatsPerBar));
+    const times = accelTimes(n, window2, spec2.intensity, (rng() - 0.5) * 0.12);
+    const base = lerp(34, 58, spec2.intensity);
+    const peak = lerp(96, 124, spec2.intensity);
+    const hits2 = times.map((t, i) => {
+      const u = n > 1 ? i / (n - 1) : 1;
+      const next = times[i + 1];
+      const span = next !== void 0 ? next - t : 0.12;
+      return { voice, startTime: t, duration: clamp(span * 0.9, 0.02, 0.25), velocity: clampVel(lerp(base, peak, buildupCurve(u, spec2.intensity))) };
+    });
+    const ghosts = Math.round(lerp(0, 3, spec2.density));
+    for (let g = 0; g < ghosts; g++) {
+      const i = Math.floor(rng() * Math.max(1, Math.floor(n / 2)));
+      const t = times[i];
+      if (t !== void 0) hits2.push({ voice, startTime: Math.max(0, t - 0.04), duration: 0.04, velocity: clampVel(lerp(18, 38, rng())) });
+    }
+    if (resolveVoice && hits2.length) {
+      const last = hits2[hits2.length - 1];
+      last.voice = resolveVoice;
+      last.duration = 0.18;
+    }
+    return hits2;
+  }
+  function figureFill(bank, window2, intensity, rng) {
+    const out = [];
+    let t = 0;
+    let guard = 0;
+    while (t < window2 - 1e-6 && guard++ < 32) {
+      const remain = window2 - t;
+      const fitting = bank.fills.filter((f2) => f2.lengthBeats <= remain + 1e-6);
+      const choices = fitting.length ? fitting : bank.fills;
+      const f = pick(choices, rng);
+      const velScale = lerp(0.82, 1.06, t / Math.max(window2, 1e-6)) * lerp(0.85, 1.05, intensity);
+      out.push(...place(f, t, velScale));
+      t += f.lengthBeats;
+      if (f.lengthBeats > remain + 1e-6) break;
+    }
+    return out;
+  }
+  function cascadeFill(spec2, window2, rng) {
+    const toms = ["hiTom", "midTom", "lowTom"];
+    const n = Math.max(4, Math.round(lerp(6, 16, spec2.density) * window2 / spec2.beatsPerBar));
+    const times = accelTimes(n, window2, spec2.intensity, (rng() - 0.5) * 0.1);
+    const base = lerp(44, 62, spec2.intensity);
+    const peak = lerp(100, 124, spec2.intensity);
+    const hits2 = times.map((t, i) => {
+      const u = n > 1 ? i / (n - 1) : 1;
+      const idx = clamp(Math.floor(i / n * 3 + (rng() - 0.5) * 0.6), 0, 2);
+      const next = times[i + 1];
+      const span = next !== void 0 ? next - t : 0.15;
+      return { voice: toms[idx], startTime: t, duration: clamp(span * 0.9, 0.04, 0.3), velocity: clampVel(lerp(base, peak, buildupCurve(u, spec2.intensity))) };
+    });
+    const last = hits2[hits2.length - 1];
+    if (last) hits2.push(...ornamentHits(last, "flam"));
+    return hits2;
+  }
+  function stutterFill(spec2, bank, window2, rng) {
+    const fromBank = Array.from(new Set(bank.fills.flatMap((f) => f.hits.map((h) => h.voice))));
+    const voices = fromBank.length ? fromBank : ["snare", "closedHat"];
+    const out = [];
+    const groups = 2 + Math.floor(rng() * 3);
+    for (let g = 0; g < groups; g++) {
+      const start = rng() * (window2 * 0.85);
+      const voice = pick(voices, rng);
+      const reps = 3 + Math.floor(rng() * lerp(2, 6, spec2.density));
+      const div = 0.25 / (1 + Math.floor(rng() * 3));
+      const bv = lerp(54, 112, rng());
+      for (let r = 0; r < reps; r++) {
+        const t = start + r * div;
+        if (t >= window2) break;
+        out.push({ voice, startTime: t, duration: Math.max(0.02, div * 0.8), velocity: clampVel(bv * (1 - r * 0.04)) });
+      }
+    }
+    if (out.length < 2) {
+      out.push({ voice: "snare", startTime: 0, duration: 0.1, velocity: 90 });
+      out.push({ voice: "snare", startTime: Math.min(window2 * 0.5, window2 - 0.1), duration: 0.1, velocity: 110 });
+    }
+    return out;
+  }
+  function buildFill(spec2, bank, window2, rng) {
+    const dense = { ...spec2, density: clamp(spec2.density * 1.1 + 0.1, 0, 1) };
+    const out = bank.fills.length ? figureFill(bank, window2, 1, rng) : rollFill(dense, window2, rng, "snare");
+    for (let b = 0; b < window2 - 1e-6; b += 1) {
+      const u = b / Math.max(1, window2);
+      out.push({ voice: "kick", startTime: b, duration: 0.12, velocity: clampVel(lerp(70, 116, u)) });
+    }
+    return out;
+  }
+  function halfTimeFill(spec2, window2) {
+    const hits2 = [];
+    hits2.push({ voice: "kick", startTime: 0, duration: 0.14, velocity: 116 });
+    const bigSnare = { voice: "snare", startTime: window2 / 2, duration: 0.16, velocity: 122 };
+    hits2.push(...ornamentHits(bigSnare, "flam"), bigSnare);
+    if (window2 >= 4) hits2.push({ voice: "kick", startTime: window2 * 0.75, duration: 0.12, velocity: 104 });
+    const pickupStart = Math.max(window2 / 2 + 0.25, window2 - 1);
+    const span = window2 - pickupStart;
+    if (span > 0.1) {
+      const n = Math.max(2, Math.round(lerp(2, 6, spec2.density)));
+      accelTimes(n, span, spec2.intensity).forEach((t, i) => {
+        const u = n > 1 ? i / (n - 1) : 1;
+        hits2.push({ voice: "snare", startTime: pickupStart + t, duration: 0.06, velocity: clampVel(lerp(56, 118, u)) });
+      });
+    }
+    return hits2;
+  }
+  function techniqueFill(spec2, bank, window2, rng) {
+    switch (spec2.technique) {
+      case "snareRoll":
+        return rollFill(spec2, window2, rng, "snare");
+      case "hatRun":
+        return rollFill(spec2, window2, rng, "closedHat", "openHat").map((h) => ({ ...h, velocity: clampVel(h.velocity * 0.8) }));
+      case "tomCascade":
+        return cascadeFill(spec2, window2, rng);
+      case "glitchStutter":
+        return stutterFill(spec2, bank, window2, rng);
+      case "buildUp":
+        return buildFill(spec2, bank, window2, rng);
+      case "halfTimeDropIn":
+        return halfTimeFill(spec2, window2);
+      case "ghostGroove":
+      default:
+        return bank.fills.length ? figureFill(bank, window2, spec2.intensity, rng) : rollFill(spec2, window2, rng, "snare");
+    }
+  }
+  function addResolve(hits2, bank, len, intensity) {
+    if (!hits2.length) return;
+    const last = Math.min(hits2.reduce((m, h) => Math.max(m, h.startTime), 0), len - 1e-4);
+    const hasCymbal = hits2.some((h) => (h.voice === "crash" || h.voice === "ride") && h.startTime >= last - 0.05);
+    if (!hasCymbal) hits2.push({ voice: bank.resolve, startTime: last, duration: voiceDur(bank.resolve), velocity: clampVel(lerp(104, 124, intensity)) });
+  }
+  function mapVoices(hits2, map) {
+    return hits2.map((h) => ({
+      pitch: map[h.voice],
+      startTime: h.startTime,
+      duration: h.duration,
+      velocity: h.velocity
+    }));
+  }
+  function generateFillVoices(spec2) {
+    const len = spec2.lengthBars * spec2.beatsPerBar;
+    const bank = GENRE_BANKS[spec2.genre];
+    const rng = mulberry32(spec2.seed);
+    const window2 = spec2.context === "fill" ? len : len <= 2 ? len : len / 2;
+    const grooveBeats = Math.max(0, len - window2);
+    const out = [];
+    if (grooveBeats > 1e-6) out.push(...layGroove(bank, grooveBeats, spec2.intensity, rng));
+    for (const h of techniqueFill(spec2, bank, window2, rng)) {
+      out.push({ ...h, startTime: h.startTime + grooveBeats });
+    }
+    addResolve(out, bank, len, spec2.intensity);
+    return out.filter((h) => h.startTime >= 0 && h.startTime < len).map((h) => ({ ...h, velocity: clampVel(h.velocity) })).sort((a, b) => a.startTime - b.startTime || a.voice.localeCompare(b.voice));
+  }
+  function generateFill(spec2, map = GM_MAP) {
+    const merged = { ...GM_MAP, ...map };
+    const bank = GENRE_BANKS[spec2.genre];
+    const hits2 = generateFillVoices(spec2);
+    let notes = mapVoices(hits2, merged);
+    notes = swing(notes, Math.max(spec2.swing, bank.swing));
+    notes = humanize(notes, spec2.humTiming * 0.04, Math.round(spec2.humVel * 16));
+    return notes.sort((a, b) => a.startTime - b.startTime || a.pitch - b.pitch);
+  }
+
+  // src/webview/main.ts
+  function send(payload) {
+    const w = window;
+    const msg = { method: "close_and_send", params: [payload] };
+    if (w.webkit?.messageHandlers?.live) w.webkit.messageHandlers.live.postMessage(msg);
+    else if (w.liveActionsSend) w.liveActionsSend(JSON.stringify(msg));
+  }
+  var ctx = window.__CTX__ ?? {
+    source: "MidiClip",
+    hasClip: false,
+    beatsPerBar: 4,
+    spec: DEFAULT_FILL_SPEC,
+    availableTargets: LIVE_ACTIONS_TARGETS,
+    noteCount: 0
+  };
+  var spec = { ...DEFAULT_FILL_SPEC, ...ctx.spec };
+  var target = ctx.availableTargets[0] ?? "newTrack";
+  var hits = [];
+  var lengthBeats = () => spec.lengthBars * spec.beatsPerBar;
+  var clamp2 = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  function recompute() {
+    hits = generateFillVoices(spec);
+  }
+  function laneVoices() {
+    return [...DRUM_VOICES].reverse();
+  }
+  var GENRE_SHORT = {
+    melodicHouse: "Melodic House",
+    darkTechno: "Dark Techno",
+    dnb: "D&B",
+    trap: "Trap",
+    breakbeat: "Breakbeat",
+    ambient: "Ambient",
+    rock: "Rock",
+    funk: "Funk",
+    jazz: "Jazz",
+    metal: "Metal",
+    latin: "Latin",
+    hipHop: "Hip-Hop",
+    rnb: "R&B",
+    reggae: "Reggae",
+    disco: "Disco",
+    pop: "Pop"
+  };
+  var TECH_SHORT = {
+    snareRoll: "Snare Roll",
+    tomCascade: "Tom Cascade",
+    glitchStutter: "Glitch",
+    buildUp: "Build-Up",
+    halfTimeDropIn: "Half-Time",
+    hatRun: "Hat Run",
+    ghostGroove: "Groove Fill"
+  };
+  var ACCEL_TECHNIQUES = ["snareRoll", "tomCascade", "buildUp", "hatRun", "halfTimeDropIn"];
+  function readPalette() {
+    const cs = getComputedStyle(document.body);
+    const g = (n) => cs.getPropertyValue(n).trim();
+    return {
+      heat: [0, 1, 2, 3, 4, 5].map((i) => g(`--heat-${i}`)),
+      playhead: g("--playhead"),
+      glow: g("--playhead-glow"),
+      border: g("--border"),
+      borderHi: g("--border-hi"),
+      dim: g("--dim"),
+      text: g("--text"),
+      padEmpty: g("--pad-empty"),
+      snareRow: g("--snare-row")
+    };
+  }
+  var pal = readPalette();
+  function heatColor(v) {
+    const thresholds = [0.3, 0.46, 0.6, 0.74, 0.86];
+    let i = 0;
+    while (i < thresholds.length && v >= thresholds[i]) i++;
+    return pal.heat[i];
+  }
+  var GUTTER = 58;
+  var PAD_R = 10;
+  function prepCanvas(cv) {
+    const c = cv.getContext("2d");
+    if (!c) return null;
+    const dpr = window.devicePixelRatio || 1;
+    const cw = cv.clientWidth;
+    const ch = cv.clientHeight;
+    cv.width = Math.round(cw * dpr);
+    cv.height = Math.round(ch * dpr);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, cw, ch);
+    return { c, p: { cw, ch, x0: GUTTER, plotW: cw - GUTTER - PAD_R } };
+  }
+  var xForBeat = (b, p) => p.x0 + b / Math.max(1e-3, lengthBeats()) * p.plotW;
+  function drawRoll(playheadBeat) {
+    const cv = document.getElementById("roll");
+    if (!cv) return;
+    const prep = prepCanvas(cv);
+    if (!prep) return;
+    const { c, p } = prep;
+    const rows = laneVoices();
+    const len = lengthBeats();
+    const steps = Math.max(1, Math.round(len * 4));
+    const rowH = p.ch / rows.length;
+    const stepW = p.plotW / steps;
+    const cell = clamp2(Math.min(20, stepW - 3, rowH - 8), 4, 20);
+    c.textBaseline = "middle";
+    c.font = "10px AbletonSansSmall, system-ui, sans-serif";
+    rows.forEach((voice, ri) => {
+      const ry = ri * rowH;
+      if (voice === "snare") {
+        c.fillStyle = pal.snareRow;
+        c.fillRect(p.x0, ry, p.plotW, rowH);
+      }
+      c.fillStyle = voice === "snare" ? pal.text : pal.dim;
+      c.font = `${voice === "snare" ? "600 " : ""}10px AbletonSansSmall, system-ui, sans-serif`;
+      c.textAlign = "left";
+      c.fillText(VOICE_LABELS[voice], 6, ry + rowH / 2);
+      const stepVel = new Array(steps).fill(-1);
+      for (const h of hits) {
+        if (h.voice !== voice) continue;
+        const s = clamp2(Math.floor(h.startTime / len * steps), 0, steps - 1);
+        stepVel[s] = Math.max(stepVel[s], h.velocity / 127);
+      }
+      for (let s = 0; s < steps; s++) {
+        const cx = p.x0 + s * stepW + (stepW - cell) / 2;
+        const cy = ry + (rowH - cell) / 2;
+        const v = stepVel[s];
+        if (v < 0) {
+          c.fillStyle = pal.padEmpty;
+          c.globalAlpha = 1;
+          roundRect(c, cx, cy, cell, cell, 3);
+          c.fill();
+        } else {
+          c.fillStyle = heatColor(v);
+          c.globalAlpha = 0.5 + 0.5 * v;
+          roundRect(c, cx, cy, cell, cell, 3);
+          c.fill();
+          c.globalAlpha = 1;
+        }
+      }
+    });
+    drawBeatLines(c, p, len);
+    drawPlayhead(c, p, playheadBeat);
+  }
+  function drawBuildup(playheadBeat) {
+    const cv = document.getElementById("buildup");
+    if (!cv) return;
+    const prep = prepCanvas(cv);
+    if (!prep) return;
+    const { c, p } = prep;
+    const len = lengthBeats();
+    const floorY = p.ch - 8;
+    const topPad = 8;
+    const maxH = floorY - topPad;
+    drawBeatLines(c, p, len);
+    for (const h of hits) {
+      const v = h.velocity / 127;
+      const x = xForBeat(h.startTime, p);
+      const bh = (0.12 + 0.88 * v) * maxH;
+      c.fillStyle = heatColor(v);
+      c.globalAlpha = 0.55 + 0.45 * v;
+      roundRect(c, x - 2.5, floorY - bh, 5, bh, 2);
+      c.fill();
+    }
+    c.globalAlpha = 1;
+    drawPlayhead(c, p, playheadBeat);
+  }
+  function drawBeatLines(c, p, len) {
+    for (let b = 0; b <= len + 1e-3; b++) {
+      const x = xForBeat(b, p);
+      c.strokeStyle = b % spec.beatsPerBar === 0 ? pal.borderHi : pal.border;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(Math.round(x) + 0.5, 0);
+      c.lineTo(Math.round(x) + 0.5, p.ch);
+      c.stroke();
+    }
+  }
+  function drawPlayhead(c, p, beat) {
+    if (beat == null) return;
+    const x = xForBeat(clamp2(beat, 0, lengthBeats()), p);
+    c.save();
+    c.shadowColor = pal.glow;
+    c.shadowBlur = 8;
+    c.strokeStyle = pal.playhead;
+    c.lineWidth = 1.5;
+    c.beginPath();
+    c.moveTo(x, 0);
+    c.lineTo(x, p.ch);
+    c.stroke();
+    c.restore();
+  }
+  function roundRect(c, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    c.beginPath();
+    c.moveTo(x + rr, y);
+    c.arcTo(x + w, y, x + w, y + h, rr);
+    c.arcTo(x + w, y + h, x, y + h, rr);
+    c.arcTo(x, y + h, x, y, rr);
+    c.arcTo(x, y, x + w, y, rr);
+    c.closePath();
+  }
+  function buildRuler() {
+    const ruler = document.getElementById("ruler");
+    if (!ruler) return;
+    ruler.replaceChildren();
+    const len = lengthBeats();
+    const cw = document.getElementById("roll")?.clientWidth ?? ruler.clientWidth;
+    const plotW = Math.max(1, cw - GUTTER - PAD_R);
+    for (let b = 0; b < len; b++) {
+      const tick = document.createElement("div");
+      const isBar = b % spec.beatsPerBar === 0;
+      tick.className = "tick" + (isBar ? " beat" : "");
+      tick.style.left = `${GUTTER + b / len * plotW}px`;
+      tick.textContent = `${b % spec.beatsPerBar + 1}`;
+      ruler.appendChild(tick);
+    }
+  }
+  function paint(playheadBeat = manualPlayhead) {
+    drawRoll(playheadBeat);
+    drawBuildup(playheadBeat);
+  }
+  function updatePreviewTitle() {
+    const detail = document.getElementById("previewDetail");
+    if (!detail) return;
+    const barLabel = `${spec.lengthBars === 0.5 ? "\xBD" : spec.lengthBars} bar`;
+    const accel = ACCEL_TECHNIQUES.includes(spec.technique) ? " \xB7 accelerating" : "";
+    detail.innerHTML = `<b>${barLabel}</b> \xB7 ${hits.length} hits${accel}`;
+  }
+  function buildLegend() {
+    const host = document.getElementById("velLegend");
+    if (!host) return;
+    host.innerHTML = `<span class="lbl">quiet</span>` + pal.heat.map((c) => `<span class="sw" style="background:${c}"></span>`).join("") + `<span class="lbl">hard</span>`;
+  }
+  function refresh() {
+    recompute();
+    buildRuler();
+    updatePreviewTitle();
+    paint();
+  }
+  function el(id) {
+    return document.getElementById(id);
+  }
+  var genreCat = GENRE_GROUPS.find((g) => g.genres.includes(spec.genre))?.label ?? GENRE_GROUPS[0].label;
+  function buildGenres() {
+    const sel = el("genreCat");
+    if (sel.options.length === 0) {
+      for (const g of GENRE_GROUPS) {
+        const o = document.createElement("option");
+        o.value = g.label;
+        o.textContent = g.label;
+        sel.appendChild(o);
+      }
+      sel.onchange = () => {
+        genreCat = sel.value;
+        buildGenres();
+      };
+    }
+    sel.value = genreCat;
+    const group = GENRE_GROUPS.find((g) => g.label === genreCat) ?? GENRE_GROUPS[0];
+    const grid = el("genreGrid");
+    grid.replaceChildren();
+    for (const gkey of group.genres) {
+      const b = document.createElement("button");
+      b.className = "chip" + (gkey === spec.genre ? " active" : "");
+      b.textContent = GENRE_SHORT[gkey];
+      b.onclick = () => {
+        spec.genre = gkey;
+        buildGenres();
+        refresh();
+      };
+      grid.appendChild(b);
+    }
+  }
+  var TECH_ICONS = {
+    snareRoll: '<path d="M3 18V8M7 18V7M11 18V5M14 18V6M17 18V3M20 18V5"/>',
+    tomCascade: '<path d="M3 6h5v4M8 10h5v4M13 14h6"/>',
+    glitchStutter: '<path d="M3 12h3v-5h3v10h3v-7h3v4h3"/>',
+    buildUp: '<path d="M3 19L21 5M3 19h18"/>',
+    halfTimeDropIn: '<path d="M4 6h7v12H4zM15 10h5v8h-5z"/>',
+    hatRun: '<path d="M3 12h1M7 12h1M11 12h1M15 12h1M19 12h1M5 7h1M9 7h1M13 7h1M17 7h1"/>',
+    ghostGroove: '<path d="M5 16a2 2 0 100-1M12 9a3 3 0 100-1M18 16a1.5 1.5 0 100-1"/>'
+  };
+  function buildTechniques() {
+    const grid = el("techGrid");
+    grid.replaceChildren();
+    Object.keys(TECHNIQUE_LABELS).forEach((tkey) => {
+      const b = document.createElement("button");
+      b.className = "tile" + (tkey === spec.technique ? " active" : "");
+      b.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${TECH_ICONS[tkey]}</svg><span class="tname">${TECH_SHORT[tkey]}</span>`;
+      b.onclick = () => {
+        spec.technique = tkey;
+        buildTechniques();
+        refresh();
+      };
+      grid.appendChild(b);
+    });
+  }
+  function buildSeg(id, options, isActive, onPick) {
+    const seg = el(id);
+    seg.replaceChildren();
+    for (const o of options) {
+      const b = document.createElement("button");
+      b.className = isActive(o.value) ? "active" : "";
+      b.textContent = o.label;
+      b.onclick = () => onPick(o.value);
+      seg.appendChild(b);
+    }
+  }
+  var LENGTHS = [
+    { value: "0.5", label: "\xBD bar", n: 0.5 },
+    { value: "1", label: "1 bar", n: 1 },
+    { value: "2", label: "2 bar", n: 2 }
+  ];
+  function buildLength() {
+    buildSeg(
+      "lengthSeg",
+      LENGTHS,
+      (v) => Number(v) === spec.lengthBars,
+      (v) => {
+        spec.lengthBars = LENGTHS.find((l) => l.value === v).n;
+        buildLength();
+        refresh();
+      }
+    );
+  }
+  function buildContext() {
+    buildSeg(
+      "contextSeg",
+      [
+        { value: "groove", label: "Groove + fill" },
+        { value: "fill", label: "Fill only" }
+      ],
+      (v) => v === spec.context,
+      (v) => {
+        spec.context = v;
+        buildContext();
+        refresh();
+      }
+    );
+  }
+  function buildTargets() {
+    buildSeg(
+      "targets",
+      ctx.availableTargets.map((t) => ({ value: t, label: TARGET_LABELS[t] })),
+      (v) => v === target,
+      (v) => {
+        target = v;
+        buildTargets();
+      }
+    );
+  }
+  var SLIDERS = [
+    { key: "intensity", name: "Intensity", get: () => spec.intensity, set: (v) => spec.intensity = v },
+    { key: "density", name: "Density", get: () => spec.density, set: (v) => spec.density = v },
+    { key: "swing", name: "Swing", get: () => spec.swing, set: (v) => spec.swing = v },
+    {
+      key: "humanize",
+      name: "Humanize",
+      get: () => spec.humTiming,
+      set: (v) => {
+        spec.humTiming = v;
+        spec.humVel = v;
+      }
+    }
+  ];
+  function buildSliders() {
+    const host = el("sliders");
+    host.replaceChildren();
+    for (const s of SLIDERS) {
+      const row = document.createElement("div");
+      row.className = "slider";
+      const srow = document.createElement("div");
+      srow.className = "srow";
+      const name = document.createElement("span");
+      name.className = "sname";
+      name.textContent = s.name;
+      const val = document.createElement("span");
+      val.className = "sval";
+      val.textContent = `${Math.round(s.get() * 100)}%`;
+      srow.append(name, val);
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = "0";
+      input.max = "100";
+      const pct0 = Math.round(s.get() * 100);
+      input.value = String(pct0);
+      input.style.setProperty("--val", `${pct0}%`);
+      input.oninput = () => {
+        const v = Number(input.value) / 100;
+        s.set(v);
+        const pct = Math.round(v * 100);
+        val.textContent = `${pct}%`;
+        input.style.setProperty("--val", `${pct}%`);
+        refresh();
+      };
+      row.append(srow, input);
+      host.appendChild(row);
+    }
+  }
+  function buildActions() {
+    el("reshuffle").onclick = () => {
+      spec.seed = Math.imul(spec.seed || 1, 1664525) + 1013904223 >>> 0;
+      refresh();
+    };
+    el("variations").onclick = () => {
+      spec.seed = (spec.seed || 0) + 1 >>> 0;
+      refresh();
+    };
+  }
+  function buildClipChip() {
+    const chip = el("clipChip");
+    let where;
+    if (ctx.selection) {
+      const beats = +(ctx.selection.end - ctx.selection.start).toFixed(2);
+      where = `selection \xB7 ${beats} beat${beats === 1 ? "" : "s"}`;
+    } else {
+      where = ctx.hasClip ? ctx.clipName || "(unnamed clip)" : "no clip \u2014 creates one";
+    }
+    const meter = `${ctx.beatsPerBar}/4`;
+    chip.innerHTML = `<span class="chip-dot"></span><b>${escapeHtml(where)}</b> \xB7 ${meter}${ctx.tempo ? ` \xB7 ${Math.round(ctx.tempo)} BPM` : ""}`;
+  }
+  function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  }
+  function buildLogo() {
+    const svg = document.getElementById("logo");
+    svg.replaceChildren();
+    const cols = 6;
+    const rows = 3;
+    const cw = 4;
+    const ch = 5;
+    const gx = 1;
+    const gy = 1.5;
+    const litHeight = [1, 1, 2, 2, 3, 3];
+    for (let cIdx = 0; cIdx < cols; cIdx++) {
+      for (let r = 0; r < rows; r++) {
+        const lit = r >= rows - litHeight[cIdx];
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", String(cIdx * (cw + gx)));
+        rect.setAttribute("y", String(r * (ch + gy)));
+        rect.setAttribute("width", String(cw));
+        rect.setAttribute("height", String(ch));
+        rect.setAttribute("rx", "1");
+        rect.style.fill = lit ? cIdx >= 4 ? "var(--accent-b)" : "var(--accent-a)" : "var(--border)";
+        svg.appendChild(rect);
+      }
+    }
+  }
+  var THEMES = [
+    { id: "ignite", name: "Ignite", sw: "linear-gradient(120deg,#FFD56A,#FF8C32)" },
+    { id: "plasma", name: "Plasma", sw: "linear-gradient(120deg,#22D3EE,#7C3AED)" },
+    { id: "acid", name: "Acid", sw: "linear-gradient(120deg,#A3E635,#14B8A6)" },
+    { id: "ember", name: "Ember", sw: "linear-gradient(120deg,#FF6A3D,#FF2D8E)" },
+    { id: "mono", name: "Mono", sw: "linear-gradient(120deg,#FFFFFF,#9AA0AD)" }
+  ];
+  var THEME_KEY = "breakdowns-theme";
+  var currentTheme = "ignite";
+  function loadTheme() {
+    try {
+      const v = localStorage.getItem(THEME_KEY);
+      if (v && THEMES.some((t) => t.id === v)) return v;
+    } catch {
+    }
+    return "ignite";
+  }
+  function applyTheme(id) {
+    currentTheme = id;
+    if (id === "ignite") delete document.body.dataset.theme;
+    else document.body.dataset.theme = id;
+    try {
+      localStorage.setItem(THEME_KEY, id);
+    } catch {
+    }
+    pal = readPalette();
+    renderThemeList();
+    buildLegend();
+    paint();
+  }
+  function renderThemeList() {
+    const host = el("themeList");
+    host.replaceChildren();
+    for (const t of THEMES) {
+      const row = document.createElement("button");
+      row.className = "theme-row" + (t.id === currentTheme ? " active" : "");
+      row.innerHTML = `<span class="sw" style="background:${t.sw}"></span><span class="nm">${t.name}</span><span class="ck">\u2713</span>`;
+      row.onclick = () => {
+        applyTheme(t.id);
+        closeThemePop();
+      };
+      host.appendChild(row);
+    }
+  }
+  var themePopOpen = () => !el("themePop").hidden;
+  function openThemePop() {
+    const pop = el("themePop");
+    const btn = el("themeBtn");
+    pop.hidden = false;
+    const r = btn.getBoundingClientRect();
+    const pw = pop.offsetWidth;
+    pop.style.left = `${Math.max(8, Math.min(r.right - pw, window.innerWidth - pw - 8))}px`;
+    pop.style.top = `${r.bottom + 6}px`;
+  }
+  function closeThemePop() {
+    el("themePop").hidden = true;
+  }
+  function buildThemeUI() {
+    applyTheme(loadTheme());
+    el("themeBtn").onclick = (e) => {
+      e.stopPropagation();
+      themePopOpen() ? closeThemePop() : openThemePop();
+    };
+    document.addEventListener("click", (e) => {
+      if (!themePopOpen()) return;
+      const tgt = e.target;
+      if (!el("themePop").contains(tgt) && !el("themeBtn").contains(tgt)) closeThemePop();
+    });
+  }
+  var audioCtx = null;
+  var audSources = [];
+  var auditioning = false;
+  var audT0 = 0;
+  var audSpb = 0.5;
+  var audRaf = null;
+  var audEnd = null;
+  var manualPlayhead = null;
+  function voiceClass(v) {
+    if (v === "kick") return "kick";
+    if (v === "snare" || v === "clap" || v === "rim") return "snareLike";
+    if (v === "lowTom" || v === "midTom" || v === "hiTom") return "tom";
+    if (v === "closedHat" || v === "pedalHat" || v === "openHat") return "hat";
+    return "cymbal";
+  }
+  function tomFreq(v) {
+    return v === "hiTom" ? 220 : v === "midTom" ? 165 : 120;
+  }
+  function noiseBuffer(ac, secs) {
+    const n = Math.floor(ac.sampleRate * secs);
+    const buf = ac.createBuffer(1, n, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+  function trackSource(s) {
+    audSources.push(s);
+  }
+  function scheduleHit(ac, master, h, t) {
+    const vel = h.velocity / 127;
+    const cls = voiceClass(h.voice);
+    const g = ac.createGain();
+    g.connect(master);
+    if (cls === "kick") {
+      const o = ac.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(48, t + 0.12);
+      g.gain.setValueAtTime(1e-4, t);
+      g.gain.exponentialRampToValueAtTime(0.9 * vel + 0.1, t + 4e-3);
+      g.gain.exponentialRampToValueAtTime(1e-4, t + 0.22);
+      o.connect(g);
+      o.start(t);
+      o.stop(t + 0.26);
+      trackSource(o);
+      return;
+    }
+    if (cls === "tom") {
+      const o = ac.createOscillator();
+      o.type = "sine";
+      const f = tomFreq(h.voice);
+      o.frequency.setValueAtTime(f * 1.4, t);
+      o.frequency.exponentialRampToValueAtTime(f, t + 0.14);
+      g.gain.setValueAtTime(1e-4, t);
+      g.gain.exponentialRampToValueAtTime(0.7 * vel + 0.08, t + 5e-3);
+      g.gain.exponentialRampToValueAtTime(1e-4, t + 0.26);
+      o.connect(g);
+      o.start(t);
+      o.stop(t + 0.3);
+      trackSource(o);
+      return;
+    }
+    const isCym = cls === "cymbal";
+    const isHat = cls === "hat";
+    const open = h.voice === "openHat" || h.voice === "crash" || h.voice === "ride";
+    const dur = isCym ? open ? 0.5 : 0.18 : isHat ? open ? 0.22 : 0.05 : 0.18;
+    const src = ac.createBufferSource();
+    src.buffer = noiseBuffer(ac, dur + 0.02);
+    const hp = ac.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = isHat || isCym ? 7e3 : 1400;
+    const peak = (isHat ? 0.5 : isCym ? 0.45 : 0.8) * vel + 0.05;
+    g.gain.setValueAtTime(peak, t);
+    g.gain.exponentialRampToValueAtTime(1e-4, t + dur);
+    src.connect(hp);
+    hp.connect(g);
+    if (cls === "snareLike") {
+      const o = ac.createOscillator();
+      o.type = "triangle";
+      o.frequency.setValueAtTime(190, t);
+      const og = ac.createGain();
+      og.gain.setValueAtTime(0.4 * vel, t);
+      og.gain.exponentialRampToValueAtTime(1e-4, t + 0.12);
+      o.connect(og);
+      og.connect(master);
+      o.start(t);
+      o.stop(t + 0.14);
+      trackSource(o);
+    }
+    src.start(t);
+    src.stop(t + dur + 0.02);
+    trackSource(src);
+  }
+  function setAuditionUI(on) {
+    auditioning = on;
+    el("audition").classList.toggle("playing", on);
+    el("audIcon").textContent = on ? "\u23F8" : "\u25B6";
+    el("auditionTop").classList.toggle("playing", on);
+    el("audTopIcon").textContent = on ? "\u25FC" : "\u25B6";
+    el("audTopLabel").textContent = on ? "Stop" : "Audition";
+  }
+  function stopAudition() {
+    if (audRaf !== null) cancelAnimationFrame(audRaf);
+    audRaf = null;
+    if (audEnd !== null) clearTimeout(audEnd);
+    audEnd = null;
+    const now = audioCtx ? audioCtx.currentTime : 0;
+    for (const s of audSources) {
+      try {
+        s.stop(now);
+      } catch {
+      }
+    }
+    audSources = [];
+    setAuditionUI(false);
+    manualPlayhead = null;
+    setScrub(0);
+    paint(null);
+  }
+  function setScrub(beat) {
+    const len = lengthBeats();
+    const frac = clamp2(len > 0 ? beat / len : 0, 0, 1);
+    const scrub = el("scrub");
+    scrub.value = String(Math.round(frac * 1e3));
+    scrub.style.setProperty("--val", `${frac * 100}%`);
+    const ro = document.getElementById("posReadout");
+    if (ro) {
+      const bar = Math.floor(beat / spec.beatsPerBar) + 1;
+      const beatInBar = Math.floor(beat % spec.beatsPerBar) + 1;
+      ro.textContent = `bar ${bar}.${beatInBar}`;
+    }
+  }
+  function auditionTick() {
+    if (!auditioning || !audioCtx) return;
+    const beat = (audioCtx.currentTime - audT0) / audSpb;
+    paint(beat);
+    setScrub(beat);
+    audRaf = requestAnimationFrame(auditionTick);
+  }
+  function toggleAudition() {
+    if (auditioning) return stopAudition();
+    if (!hits.length) return;
+    const AC = window;
+    const Ctor = AC.AudioContext ?? AC.webkitAudioContext;
+    if (!Ctor) return;
+    if (!audioCtx) audioCtx = new Ctor();
+    const ac = audioCtx;
+    void ac.resume?.();
+    const tempo = ctx.tempo && ctx.tempo > 0 ? ctx.tempo : 120;
+    const spb = 60 / tempo;
+    const t0 = ac.currentTime + 0.08;
+    const master = ac.createGain();
+    master.gain.value = 0.5;
+    master.connect(ac.destination);
+    const len = lengthBeats();
+    for (const h of hits) scheduleHit(ac, master, h, t0 + h.startTime * spb);
+    audT0 = t0;
+    audSpb = spb;
+    setAuditionUI(true);
+    audRaf = requestAnimationFrame(auditionTick);
+    audEnd = window.setTimeout(
+      () => {
+        audEnd = null;
+        stopAudition();
+      },
+      (len * spb + 0.5) * 1e3
+    );
+  }
+  function insert() {
+    stopAudition();
+    const notes = generateFill(spec).map((n) => ({
+      pitch: n.pitch,
+      startTime: n.startTime,
+      duration: n.duration,
+      velocity: n.velocity ?? 100
+    }));
+    const req = {
+      spec,
+      target,
+      notes,
+      lengthBeats: lengthBeats(),
+      name: `Fill Forge \u2014 ${GENRE_LABELS[spec.genre]} ${TECHNIQUE_LABELS[spec.technique]}`
+    };
+    send(JSON.stringify(req));
+  }
+  function init() {
+    buildLogo();
+    buildClipChip();
+    buildGenres();
+    buildTechniques();
+    buildLength();
+    buildContext();
+    buildSliders();
+    buildActions();
+    buildTargets();
+    buildThemeUI();
+    el("audition").onclick = toggleAudition;
+    el("auditionTop").onclick = toggleAudition;
+    const scrub = el("scrub");
+    scrub.oninput = () => {
+      if (auditioning) return;
+      manualPlayhead = Number(scrub.value) / 1e3 * lengthBeats();
+      setScrub(manualPlayhead);
+      paint(manualPlayhead);
+    };
+    el("insert").onclick = insert;
+    el("cancel").onclick = () => {
+      stopAudition();
+      send(null);
+    };
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") insert();
+      else if (e.key === "Escape") {
+        if (auditioning) stopAudition();
+        else send(null);
+      } else if (e.key === " ") {
+        e.preventDefault();
+        toggleAudition();
+      }
+    });
+    window.addEventListener("resize", () => paint());
+    setScrub(0);
+    refresh();
+  }
+  init();
+})();
+</script>
+</body>
+</html>

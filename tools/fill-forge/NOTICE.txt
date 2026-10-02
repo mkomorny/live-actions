@@ -1,0 +1,16 @@
+Fill Forge
+==========
+
+Fill Forge is adapted from Breakdowns, an MIT-licensed project by another author:
+
+  https://github.com/dnvsfn/ableton-breakdowns
+  Copyright (c) 2026 E. T. Carter
+  License: MIT (see LICENSE in this folder)
+
+The original musical engine (genre banks, techniques, humanize/swing) and the
+dialog are kept. The name was changed for this app; the work is still theirs.
+
+Changes for Live Actions:
+  - Hosted as a desktop tool (Max for Live bridge), not a Suite Extension
+  - Insert destinations: New clip, Replace, Append to end, New track, At playhead
+  - Insert posts pitched MIDI notes to the Live Actions host

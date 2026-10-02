@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets and local settings: never commit these
+.env
+.env.*
+settings.json
+*.bak*
+*.tmp
+
+# Assistant / editor working files
+.remember/
+.claude/
+scratch/
+
+# Build leftovers
+node_modules/
+*.log
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.lnk
+
+# Only the top-level library index ships; per-library indexes are a user's own.
+app/genius/indexes/*/
+
+# Your own files stay yours
+knowledge/*
+!knowledge/README.md

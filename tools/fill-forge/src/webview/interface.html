@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fill Forge</title>
+  <style>
+    /* ===== Fill Forge theme system ========================================
+       Own identity — NOT Midnight Tools. Warm Ignite default (gold→orange) on
+       a cool charcoal base, with a per-theme velocity heat ramp. Everything
+       visual flows through these custom properties; body[data-theme] swaps the
+       accent + heat set. The canvas reads the heat/playhead vars via
+       getComputedStyle (see main.ts) and repaints on theme change.
+       Palettes are authoritative in design/themes.md. Ignite is :root. */
+    :root {
+      /* shared charcoal structure (all themes) */
+      --bg-0: #14161D; --bg-1: #08090C;
+      --surface: #15171E; --inset: #0C0D12;
+      --border: #242732; --border-hi: #313542;
+      --text: #ECEEF2; --dim: #7E8596;
+      --pad-empty: #181B23; --snare-row: #1A130C;
+      --on-accent: #10121A; /* active-state text stays dark on the accent */
+
+      /* Ignite (default) */
+      --accent-a: #FFD56A; --accent-b: #FF8C32; --accent-soft: #FFB85C;
+      --playhead: #FFFFFF; --playhead-glow: #FF8C32;
+      --heat-0: #7E4A1C; --heat-1: #B86A22; --heat-2: #F0852C;
+      --heat-3: #FFA63D; --heat-4: #FFC559; --heat-5: #FFE6A0;
+      --tile-bg: #2A1E0A; --tile-stroke: #FF8C32; --tile-icon: #FF8C32; --tile-text: #FFE0B0;
+    }
+    body[data-theme="plasma"] {
+      --accent-a: #22D3EE; --accent-b: #7C3AED; --accent-soft: #5FD0F0;
+      --playhead: #FFFFFF; --playhead-glow: #7C3AED;
+      --heat-0: #2A2466; --heat-1: #3E3A9E; --heat-2: #4F66D8;
+      --heat-3: #3FA8E0; --heat-4: #35D0E8; --heat-5: #CFFBFF;
+      --tile-bg: #161033; --tile-stroke: #7C3AED; --tile-icon: #A78BFA; --tile-text: #D9CFF7;
+    }
+    body[data-theme="acid"] {
+      --accent-a: #A3E635; --accent-b: #14B8A6; --accent-soft: #A8E63C;
+      --playhead: #FFFFFF; --playhead-glow: #14B8A6;
+      --heat-0: #234A1E; --heat-1: #3A6B22; --heat-2: #5E9A28;
+      --heat-3: #86C72F; --heat-4: #A8E63C; --heat-5: #E8FBC0;
+      --tile-bg: #0E2418; --tile-stroke: #14B8A6; --tile-icon: #34D399; --tile-text: #C8F5DC;
+    }
+    body[data-theme="ember"] {
+      --accent-a: #FF6A3D; --accent-b: #FF2D8E; --accent-soft: #FF8A5C;
+      --playhead: #FFFFFF; --playhead-glow: #FF2D8E;
+      --heat-0: #5E1E2A; --heat-1: #8A2A38; --heat-2: #C23A4E;
+      --heat-3: #FF5A3D; --heat-4: #FF3D7F; --heat-5: #FFD9E6;
+      --tile-bg: #2A0E16; --tile-stroke: #FF2D8E; --tile-icon: #FF6A8E; --tile-text: #FFD0DE;
+    }
+    body[data-theme="mono"] {
+      --accent-a: #FFFFFF; --accent-b: #9AA0AD; --accent-soft: #C9CDD6;
+      --playhead: #FFFFFF; --playhead-glow: #9AA0AD;
+      --heat-0: #2A2E36; --heat-1: #3E434D; --heat-2: #5A606C;
+      --heat-3: #828893; --heat-4: #B6BBC7; --heat-5: #FFFFFF;
+      --tile-bg: #1A1C22; --tile-stroke: #C9CDD6; --tile-icon: #ECEEF2; --tile-text: #ECEEF2;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    * { margin: 0; }
+    /* No default blue/white focus rings — theme handles focus where it matters. */
+    *:focus, *:focus-visible { outline: none; }
+    button::-moz-focus-inner { border: 0; }
+    html, body { height: 100%; }
+    body {
+      /* vertical: accent-b (orange) at top → accent-a (gold) at bottom, per the mockup */
+      --grad-accent: linear-gradient(180deg, var(--accent-b), var(--accent-a));
+      background: radial-gradient(120% 130% at 50% 0%, var(--bg-0) 0%, var(--bg-1) 72%);
+      color: var(--text);
+      font-family: "AbletonSansSmall", system-ui, -apple-system, sans-serif;
+      font-size: 12px; -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: column; overflow: hidden; user-select: none;
+    }
+
+    /* ---- header ---------------------------------------------------------- */
+    header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px; border-bottom: 1px solid var(--border);
+    }
+    .logo { width: 30px; height: 18px; flex: none; }
+    .logo rect { transition: fill .2s; }
+    .title { display: flex; flex-direction: column; gap: 1px; }
+    .wordmark {
+      font-size: 16px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; line-height: 1.05;
+      background: var(--grad-accent);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .tagline { font-size: 10px; color: var(--dim); letter-spacing: .2px; }
+    .clip-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--inset); border: 1px solid var(--border); color: var(--dim);
+      font-size: 11px; max-width: 280px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    }
+    .clip-chip b { color: var(--text); font-weight: 600; }
+    .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-b); flex: none; }
+    .spacer { flex: 1; }
+    .icon-btn {
+      width: 30px; height: 30px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; border-radius: 7px; border: 1px solid var(--border); background: var(--inset);
+      color: var(--accent-soft); cursor: pointer;
+    }
+    .icon-btn:hover { border-color: var(--border-hi); }
+    .icon-btn svg { width: 16px; height: 16px; }
+
+    /* theme popout */
+    #themePop {
+      position: fixed; z-index: 40; min-width: 168px;
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: 10px; padding: 6px; box-shadow: 0 14px 40px rgba(0,0,0,.55);
+    }
+    #themePop[hidden] { display: none; }
+    .theme-row {
+      display: flex; align-items: center; gap: 9px; width: 100%;
+      padding: 7px 9px; border-radius: 7px; border: 1px solid transparent;
+      background: transparent; color: var(--text); cursor: pointer; font: inherit;
+    }
+    .theme-row:hover { background: var(--inset); }
+    .theme-row.active { border-color: var(--border-hi); background: var(--inset); }
+    .theme-row .sw { width: 26px; height: 14px; border-radius: 4px; flex: none; }
+    .theme-row .nm { flex: 1; text-align: left; }
+    .theme-row .ck { color: var(--accent-soft); opacity: 0; }
+    .theme-row.active .ck { opacity: 1; }
+
+    /* ---- body split ------------------------------------------------------ */
+    main { flex: 1; display: flex; gap: 18px; padding: 16px 18px; min-height: 0; }
+    .controls { width: 320px; flex: none; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+    .preview { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+    .group { display: flex; flex-direction: column; gap: 5px; }
+    .group > .label,
+    .lane-label {
+      font-size: 10.5px; font-weight: 600; letter-spacing: .6px;
+      text-transform: uppercase; color: var(--dim);
+    }
+
+    /* genre chips */
+    .chip-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+    .chip {
+      padding: 5px 6px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--dim); cursor: pointer; font: inherit;
+      font-size: 11px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chip:hover { border-color: var(--border-hi); color: var(--text); }
+    .chip.active {
+      background: var(--grad-accent); color: var(--on-accent);
+      border-color: transparent; font-weight: 600;
+    }
+
+    /* technique tiles — 2-col horizontal pills (icon left of label) */
+    .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .tile {
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
+      padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--dim); cursor: pointer; font: inherit;
+    }
+    .tile:hover { border-color: var(--border-hi); color: var(--text); }
+    .tile svg { width: 15px; height: 15px; flex: none; stroke: currentColor; fill: none; }
+    .tile .tname { font-size: 11px; line-height: 1.1; text-align: left; }
+    .tile.active {
+      background: var(--tile-bg); border-color: var(--tile-stroke); color: var(--tile-text);
+    }
+    .tile.active svg { stroke: var(--tile-icon); }
+
+    /* segmented controls */
+    .seg { display: inline-flex; background: var(--inset); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 0; }
+    .seg.fill { display: flex; }
+    .seg button {
+      flex: 1; border: 1px solid transparent; background: transparent; color: var(--dim);
+      padding: 4px 11px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 11px; white-space: nowrap;
+    }
+    .seg button:hover { color: var(--text); }
+    .seg button.active {
+      background: var(--grad-accent); color: var(--on-accent); font-weight: 600;
+    }
+    .dropdown {
+      -webkit-appearance: none; appearance: none;
+      border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+      color: var(--text); font: inherit; font-size: 11px; padding: 3px 22px 3px 9px;
+      background-color: var(--inset);
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237E8596' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+      background-repeat: no-repeat; background-position: right 6px center;
+    }
+    .dropdown:hover { border-color: var(--border-hi); }
+    .dropdown:focus { border-color: var(--accent-b); }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .row .label { font-size: 11px; color: var(--dim); }
+
+    /* sliders — full width, label + value above the track */
+    .sliders { display: flex; flex-direction: column; gap: 6px; }
+    .slider { display: flex; flex-direction: column; gap: 3px; }
+    .slider .srow { display: flex; align-items: baseline; justify-content: space-between; }
+    .slider .sname { font-size: 10.5px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--dim); }
+    .slider .sval { font-size: 11px; color: var(--accent-soft); font-variant-numeric: tabular-nums; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 7px; border-radius: 4px;
+      border: none; outline: none; cursor: pointer;
+      /* --val (0..100) drives a solid-orange filled track up to the knob (matches mockup) */
+      background:
+        linear-gradient(var(--accent-b), var(--accent-b)) no-repeat,
+        var(--inset);
+      background-size: var(--val, 50%) 100%, 100% 100%;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 15px; height: 15px; border-radius: 50%;
+      background: #FFFFFF; border: none; cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+    }
+
+    .actions { display: flex; gap: 9px; margin-top: 2px; }
+    .actions button {
+      flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--text); cursor: pointer; font: inherit; font-weight: 600;
+    }
+    .actions button:hover { border-color: var(--accent-b); color: var(--accent-soft); }
+    .actions button svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+
+    /* ---- preview --------------------------------------------------------- */
+    .ruler { height: 16px; position: relative; color: var(--dim); font-size: 9.5px; }
+    .ruler .tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--border); padding-left: 4px; }
+    .ruler .tick.beat { border-left-color: var(--border-hi); }
+    .canvas-wrap {
+      position: relative; background: var(--inset); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+    }
+    .canvas-wrap.roll { flex: 1; min-height: 200px; }
+    .canvas-wrap.lane { height: 76px; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .ptitle { display: flex; align-items: baseline; gap: 8px; }
+    .plabel { font-size: 10.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--dim); }
+    .pdetail { font-size: 10.5px; color: var(--dim); }
+    .pdetail b { color: var(--text); font-weight: 600; }
+    .ph-right { display: flex; align-items: center; gap: 12px; }
+    .vel-legend { display: flex; align-items: center; gap: 4px; }
+    .vel-legend .lbl { font-size: 9.5px; color: var(--dim); }
+    .vel-legend .sw { width: 11px; height: 11px; border-radius: 2px; }
+    #auditionTop {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px;
+      border-radius: 7px; border: 1px solid var(--border); background: var(--inset);
+      color: var(--accent-soft); cursor: pointer; font: inherit; font-weight: 600; font-size: 11px;
+    }
+    #auditionTop:hover { border-color: var(--accent-b); }
+    #auditionTop.playing { background: var(--grad-accent); color: var(--on-accent); border-color: transparent; }
+    .lane-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .lane-sub { font-size: 9.5px; color: var(--dim); }
+
+    .audition-row { display: flex; align-items: center; gap: 12px; }
+    #audition {
+      width: 30px; height: 30px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 7px; border: 1px solid var(--border); background: var(--inset);
+      color: var(--accent-soft); cursor: pointer; font: inherit; font-size: 12px;
+    }
+    #audition:hover { border-color: var(--accent-b); }
+    #audition.playing { background: var(--grad-accent); color: var(--on-accent); border-color: transparent; }
+    #scrub { flex: 1; }
+    .pos-readout { font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
+
+    /* ---- footer ---------------------------------------------------------- */
+    footer {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 18px; border-top: 1px solid var(--border);
+    }
+    footer .targets-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    footer .seg { flex-wrap: wrap; }
+    footer .targets-wrap .label { font-size: 11px; color: var(--dim); }
+    footer button.btn {
+      padding: 8px 18px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--inset); color: var(--text); cursor: pointer; font: inherit;
+    }
+    footer button.btn:hover { border-color: var(--border-hi); }
+    footer button#insert {
+      border-color: transparent; color: var(--on-accent); font-weight: 700;
+      background: var(--grad-accent);
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    footer button#insert svg { width: 14px; height: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <svg class="logo" id="logo" viewBox="0 0 30 18" aria-hidden="true"></svg>
+    <div class="title">
+      <span class="wordmark">Fill Forge</span>
+      <span class="tagline">transitional drum fills</span>
+    </div>
+    <span class="spacer"></span>
+    <span class="clip-chip" id="clipChip">…</span>
+    <button class="icon-btn" id="themeBtn" title="Theme" aria-label="Theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="13.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="17.5" cy="10.5" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="8.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="6.5" cy="12.5" r="1.5" fill="currentColor" stroke="none"/>
+        <path d="M12 2C6.5 2 2 6 2 11c0 5 4 7 7 7 1.5 0 2-1 2-2 0-1.5 1-2 2-2h3c2.5 0 4-2 4-5 0-4-4-7-8-7z"/>
+      </svg>
+    </button>
+    <div id="themePop" hidden>
+      <div id="themeList"></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls">
+      <div class="group">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div class="label">Genre</div>
+          <select class="dropdown" id="genreCat" aria-label="Genre category"></select>
+        </div>
+        <div class="chip-grid" id="genreGrid"></div>
+      </div>
+      <div class="group">
+        <div class="label">Technique</div>
+        <div class="tile-grid" id="techGrid"></div>
+      </div>
+      <div class="group">
+        <div class="label">Length</div>
+        <div class="seg fill" id="lengthSeg"></div>
+      </div>
+      <div class="group">
+        <div class="label">Context</div>
+        <div class="seg fill" id="contextSeg"></div>
+      </div>
+      <div class="group">
+        <div class="sliders" id="sliders"></div>
+      </div>
+      <div class="actions">
+        <button id="reshuffle">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l3 4M3 17h4l9-12h5M14 5l3-2v4M21 17h-5l-2-3M18 15l3 2-3 2"/></svg>
+          Reshuffle
+        </button>
+        <button id="variations">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h6v6H5zM13 13h6v6h-6zM5 13h6M16 5v6"/></svg>
+          Variations
+        </button>
+      </div>
+    </section>
+
+    <section class="preview">
+      <div class="preview-head">
+        <div class="ptitle"><span class="plabel">Preview</span><span class="pdetail" id="previewDetail"></span></div>
+        <div class="ph-right">
+          <div class="vel-legend" id="velLegend"></div>
+          <button id="auditionTop"><span id="audTopIcon">▶</span><span id="audTopLabel">Audition</span></button>
+        </div>
+      </div>
+      <div class="ruler" id="ruler"></div>
+      <div class="canvas-wrap roll"><canvas id="roll"></canvas></div>
+      <div class="lane-head">
+        <span class="lane-label">Build-up</span>
+        <span class="lane-sub">velocity accelerates → downbeat</span>
+      </div>
+      <div class="canvas-wrap lane"><canvas id="buildup"></canvas></div>
+      <div class="audition-row">
+        <button id="audition" title="Play / pause"><span id="audIcon">▶</span></button>
+        <input type="range" id="scrub" min="0" max="1000" value="0" />
+        <span class="pos-readout" id="posReadout">bar 1.1</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="targets-wrap">
+      <span class="label">Insert as</span>
+      <div class="seg" id="targets"></div>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn" id="cancel">Cancel</button>
+    <button class="btn" id="insert" autofocus>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
+      Insert fill
+    </button>
+  </footer>
+
+  <script>
+    // The host injects the per-invocation FillContext here at dialog time.
+    window.__CTX__ = __CTX_JSON__;
+  </script>
+  <script>/*__UI_BUNDLE__*/</script>
+</body>
+</html>

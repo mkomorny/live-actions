@@ -1,0 +1,32 @@
+Song Mapper
+===========
+
+Song Mapper is adapted from Arrangement Helper, an MIT-licensed extension by
+another author:
+
+  https://github.com/federico-pepe/ableton-live-extensions
+  (extensions/arrangement-helper, v0.0.8)
+  Copyright (c) 2026 Federico P.
+  License: MIT (see LICENSE in this folder)
+
+The dialog's CSS, 70-colour Ableton palette, 12 preset chips, drag-reorder
+list, colour popup, and totals readout are kept from the original. The name
+was changed for this app; that work is still theirs.
+
+Changes for Live Actions:
+  - Hosted as a desktop tool (Max for Live bridge), not a Live 12 Suite
+    Extension -- Live 12 Standard has no Extensions host or right-click
+    context-menu registration.
+  - Audio and MIDI clips are moved losslessly via
+    Track.duplicate_clip_to_arrangement on an Arrangement-sourced clip, when
+    the Live Object Model supports it -- warp mode, markers, loop points,
+    gain, and pitch all survive. The original always recreates clips from
+    file_path and loses all of that; this port falls back to the same lossy
+    recreate only if a future Live version regresses that behavior.
+  - "Whole Project" checkbox: remap defaults to ticked tracks only in edit
+    mode, opt into set-wide with a second confirmation.
+  - Reorder/resize sends a two-call plan/execute sequence to the Live
+    Actions host instead of one blocking dialog call, so real undo-step
+    counts and an operation cap are known and enforced before anything is
+    written.
+  - Section-track picker persists the last-used track in tool prefs.

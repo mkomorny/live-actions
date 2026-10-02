@@ -1,0 +1,52 @@
+HOW TO USE: live-actions-genius
+================================
+
+PURPOSE
+  Live Actions Genius: control the open Ableton Set through live_* tools
+  on the Live Actions Bridge, and answer how-to from the bundled knowledge
+  database and your own Knowledge folder. The app loads this skill itself;
+  there is nothing to install.
+
+CAPABILITIES
+  - Connect with live_connect, then live_read_set before changing the Set
+  - Insert native Live devices (Live 12.3+)
+  - Add VST/AU, Max for Live devices and presets when the browser engine
+    (LiveActionsRS) is online
+  - Inspect already-present VST/AU with live_inspect_plugin
+  - Read and set Live-visible knobs with live_read_device and
+    live_update_device (LOM-visible only)
+  - Write MIDI, tracks, clips, routing, racks, automation
+  - Cite the database (library_db_search) instead of guessing
+
+USE CASES
+  - "Write an 8-bar D Dorian clip on the keys track"
+  - "Give me a trap beat at 140 with a rolling hat"
+  - "What's clashing in my low end?"
+  - "Open the cutoff on the synth that's already on this track"
+
+IDEAS
+  - Inspect first, then set only names the inspect/read returned
+  - Say LOM-visible only when wavetable or mod-matrix may still be missing
+  - Treat presets[] as a list, not a load command
+  - Ask with topic "?" to see every dataset, including your own
+
+PROMPTS YOU CAN PASTE
+  What datasets can you search?
+
+  Inspect the synth on the ticked track and list Live-visible knobs.
+
+  Dark dubstep bass: write the MIDI, then build the patch in Drift.
+
+  Check my mix and tell me the three biggest problems.
+
+EXAMPLE FLOW
+  You:   Open the filter on the synth on track 2
+  Model: live_connect, live_inspect_plugin / live_read_device,
+         then live_update_device with a real param name.
+         Reports LOM-visible only if wavetable data is not in the list.
+
+DEFAULT GOALS IF YOU DON'T NAME ONE
+  1. Connect and read the Set before changing it
+  2. Search the database before answering from memory
+  3. Use inspect/read names, never invented parameter names
+  4. Say plainly what could not be done, and hand it off with a citation

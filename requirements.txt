@@ -1,0 +1,17 @@
+# Live Actions -- runtime dependencies (Windows, Python 3.12).
+#
+# ffmpeg is used by TTS Vocal and Audio Sample for format conversion. It is an
+# external program (set its path in Preferences, or put it on PATH), not a pip package.
+
+numpy==2.5.1
+scipy==1.18.1
+soundfile==0.14.0
+pypdf==6.14.2
+
+# Optional: more accurate loudness (LUFS). Without it the app falls back to a
+# numpy-only estimate.
+pyloudnorm==0.2.0
+
+# The WebView2 window.
+pywebview==6.2.1
+pythonnet==3.1.0

@@ -1,0 +1,52 @@
+LIVE ACTIONS — how to start
+===========================
+Needs Ableton Live 12 with Max for Live. Run install.ps1 once first (see INSTALL.md).
+
+1. Put the device on a track
+   Open Live. Select any audio track (or a MIDI track that already has an instrument).
+   In the browser, open User Library -> Presets -> Audio Effects -> Max Audio Effect
+   -> Live Actions.
+
+   Drag Live Actions onto that track's device chain, the same way you drop EQ or Compressor.
+   Audio passes through. It does not change the sound.
+
+   If Live was already open during the install, restart Live so it sees the new device.
+
+2. Open the desktop window
+   Click "Open desktop host" on the Live Actions device,
+   double-click "Live Actions" on the Desktop,
+   or run Launch Live Actions.bat in this folder.
+   If the window is already open, the button brings it to the front.
+
+3. Wait for Connected
+   The badge turns green when the window hears the device.
+   The header then shows the Set name, tempo and track count.
+
+4. Use the tools
+   Tick the tracks a tool should touch, open a tool card, press Run.
+   A tool only touches the tracks you tick. None of this needs an API key.
+
+5. Optional: Genius (the AI assistant)
+   Genius needs YOUR OWN API key from xAI, OpenAI, Google (Gemini) or Anthropic.
+   Open Preferences -> AI provider, paste the key, pick a model.
+   Your provider bills you for what Genius uses. The key is saved on this PC only,
+   in %APPDATA%\Live Actions\settings.json, as plain text.
+
+6. Optional: let Genius use Live's browser
+   Without this, Genius can do everything else but cannot see Live's library
+   panel (packs, presets, plug-ins). That part of Live is not exposed to Max for
+   Live, so it needs a small Remote Script, which install.ps1 already copied to
+   your User Library.
+
+   In Live: Settings -> Link, Tempo & MIDI -> pick any free Control Surface
+   slot -> choose "LiveActionsRS". Restart Live once.
+
+7. Optional: spoken vocals
+   Save a TTS profile (Preferences -> TTS Vocal Profiles) with your own key for
+   OpenAI, xAI or Cartesia, and install ffmpeg. These are SPEECH models, so they
+   do not sing, and the length depends on how much text you give them.
+   Generating costs money on your own key, so the app asks you to approve each
+   call and shows you the exact text first.
+
+Ports (this PC only): app -> device 11924, device -> app 11925,
+app -> browser engine 11926 (only if you did step 6).

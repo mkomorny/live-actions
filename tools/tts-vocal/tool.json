@@ -1,0 +1,55 @@
+{
+  "id": "tts-vocal",
+  "name": "TTS Vocal",
+  "description": "Generate an AI text-to-speech vocal sample from text using a saved profile. Runs on the desktop host, not in Live.",
+  "accent": "#22C55E",
+  "version": "0.3",
+  "enabled": true,
+  "runtime": "host",
+  "fields": [
+    {
+      "id": "text",
+      "label": "Text to speak",
+      "type": "textarea",
+      "default": "",
+      "hint": "Up to 2000 characters."
+    },
+    {
+      "id": "profile",
+      "label": "Profile",
+      "type": "select",
+      "optionsSource": "tts_profiles",
+      "default": "",
+      "hint": "Saved profiles from Settings → TTS Vocal Profiles."
+    },
+    {
+      "id": "voice",
+      "label": "Voice override",
+      "type": "text",
+      "default": "",
+      "hint": "Leave blank to use the profile's saved voice ID."
+    },
+    {
+      "id": "speed",
+      "label": "Speed override",
+      "type": "text",
+      "default": "",
+      "hint": "e.g. 1.0 = normal. Leave blank to use the profile's default."
+    },
+    {
+      "id": "language",
+      "label": "Language / pronunciation",
+      "type": "text",
+      "default": "",
+      "hint": "e.g. en, es. Affects how words are pronounced. xAI also accepts 'auto'."
+    },
+    {
+      "id": "destination",
+      "label": "Destination",
+      "type": "select",
+      "options": ["Save to PC", "Add to Live Set"],
+      "default": "Save to PC",
+      "hint": "Save to PC asks where to put the file. Add to Live Set places it on the first ticked audio track."
+    }
+  ]
+}

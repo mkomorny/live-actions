@@ -1,0 +1,72 @@
+/* Bundled fonts (SIL OFL 1.1; licence texts in web/fonts) -- replaces the preview theme's Google Fonts @import. */
+/* The kit asked Google for weights 400 and 700 only, so 500/600 text resolves to those two faces exactly as it did there. */
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/ChakraPetch-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/ChakraPetch-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/Outfit-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/Outfit-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Space Mono"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/SpaceMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Space Mono"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/SpaceMono-Bold.woff2") format("woff2"); }
+
+/* Theme: Aurora Borealis  --  kit 'aurora-borealis-geomagnetic'.
+   Section 1 is the kit's tokens.css, verbatim. Section 2 is the adapter. */
+
+/* ---- 1. kit tokens.css (verbatim) ---- */
+:root {
+  --kit-bg: #030712;
+  --kit-bg-subtle: #0B1329;
+  --kit-surface: #111C38;
+  --kit-text: #F8FAFC;
+  --kit-text-muted: #94A3B8;
+  --kit-border: #1E293B;
+  --kit-accent: #10B981;
+  --kit-accent-text: #022C22;
+  --kit-accent-alt: #A855F7;
+  --kit-warn: #F43F5E;
+
+  --kit-font-display: 'Chakra Petch',sans-serif;
+  --kit-font-body: 'Outfit',sans-serif;
+  --kit-font-mono: 'Space Mono',monospace;
+
+  --kit-space-xs: 4px;
+  --kit-space-sm: 8px;
+  --kit-space-md: 12px;
+  --kit-space-lg: 16px;
+  --kit-space-xl: 24px;
+
+  --kit-radius-sm: 3px;
+  --kit-radius-md: 6px;
+  --kit-radius-lg: 8px;
+  --kit-radius-full: 9999px;
+
+  --kit-shadow-sm: 0 2px 8px rgba(0,0,0,0.15);
+  --kit-shadow-md: 0 12px 30px rgba(0,0,0,0.25);
+  --kit-motion-duration: 180ms;
+  --kit-motion-ease: cubic-bezier(.2,.8,.2,1);
+}
+
+/* Alias layer — resolves signature.css's bare custom properties against
+   this kit's own --kit-* tokens, so the kit is self-contained. */
+:root {
+  --bg: var(--kit-bg);
+  --bg2: var(--kit-bg-subtle);
+  --surface: var(--kit-surface);
+  --text: var(--kit-text);
+  --text-muted: var(--kit-text-muted);
+  --border: var(--kit-border);
+  --accent: var(--kit-accent);
+  --accent-text: var(--kit-accent-text);
+  --alt: var(--kit-accent-alt);
+  --edge: 1px solid var(--kit-border);
+  --font-display: var(--kit-font-display);
+  --font-body: var(--kit-font-body);
+  --font-mono: var(--kit-font-mono);
+}
+
+/* ---- 2. adapter: what the app needs that the kit does not define ---- */
+:root {
+  --ad-ok: var(--kit-accent);
+  --ad-warn: #fbbf24;
+  --ad-err: var(--kit-warn);
+  --ad-label-case: uppercase;
+  --ad-label-track: .1em;
+}

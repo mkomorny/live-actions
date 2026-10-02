@@ -1,0 +1,9 @@
+{
+  "id": "duplicate-clips",
+  "name": "Duplicate Clips",
+  "description": "Copy every session clip on the ticked tracks into the next empty slots.",
+  "accent": "#f59e0b",
+  "version": "1.0",
+  "enabled": true,
+  "fields": []
+}

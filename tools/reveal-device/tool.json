@@ -1,0 +1,17 @@
+{
+  "id": "reveal-device",
+  "name": "Reveal Device",
+  "description": "Select a converted Extension already on a ticked track (Chord Explorer, Dub Assistant, Mutate Variations…).",
+  "accent": "#818cf8",
+  "version": "1.0",
+  "enabled": true,
+  "fields": [
+    {
+      "id": "name",
+      "label": "Device name contains",
+      "type": "text",
+      "default": "Chord Explorer",
+      "hint": "Partial device name to search for. Matches any device whose name contains this text."
+    }
+  ]
+}

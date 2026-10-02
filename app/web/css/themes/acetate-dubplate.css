@@ -1,0 +1,54 @@
+/* Bundled fonts (SIL OFL 1.1; licence texts in web/fonts) -- replaces the preview theme's Google Fonts @import. */
+/* The kit asked Google for weights 400 and 700 only, so 500/600 text resolves to those two faces exactly as it did there. */
+@font-face { font-family: "Alfa Slab One"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/AlfaSlabOne-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/Figtree-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/Figtree-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/Caveat-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/Caveat-Bold.woff2") format("woff2"); }
+
+/* Theme: Acetate Dubplate  --  kit 'acetate-dubplate'.
+   Section 1 is the kit's tokens.css, verbatim. Section 2 is the adapter. */
+
+/* ---- 1. kit tokens.css (verbatim) ---- */
+:root {
+  --kit-bg: #0B0B0D;
+  --kit-bg-subtle: #131315;
+  --kit-surface: #1A1A1D;
+  --kit-text: #EDEBE6;
+  --kit-text-muted: #A6A39C;
+  --kit-border: #2A2A2E;
+  --kit-accent: #2F44C4;
+  --kit-accent-text: #F2F4FF;
+  --kit-accent-alt: #B3ADA0;
+  --kit-warn: #C93A2E;
+
+  --kit-font-display: 'Alfa Slab One',Georgia,serif;
+  --kit-font-body: 'Figtree',system-ui,sans-serif;
+  --kit-font-mono: 'Caveat',cursive;
+
+  --kit-space-xs: 4px;
+  --kit-space-sm: 8px;
+  --kit-space-md: 12px;
+  --kit-space-lg: 16px;
+  --kit-space-xl: 24px;
+
+  --kit-radius-sm: 2px;
+  --kit-radius-md: 2px;
+  --kit-radius-lg: 2px;
+  --kit-radius-full: 9999px;
+
+  --kit-shadow-sm: none;
+  --kit-shadow-md: none;
+  --kit-motion-duration: 150ms;
+  --kit-motion-ease: cubic-bezier(.3,.8,.3,1);
+}
+
+/* ---- 2. adapter: what the app needs that the kit does not define ---- */
+:root {
+  --ad-ok: #7dae5f;
+  --ad-warn: #d9a441;
+  --ad-err: var(--kit-warn);
+  --ad-label-case: uppercase;
+  --ad-label-track: .1em;
+  --ad-heading-scale: .95;
+}

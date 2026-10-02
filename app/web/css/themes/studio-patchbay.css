@@ -1,0 +1,55 @@
+/* Bundled fonts (SIL OFL 1.1; licence texts in web/fonts) -- replaces the preview theme's Google Fonts @import. */
+/* The kit asked Google for weights 400 and 700 only, so 500/600 text resolves to those two faces exactly as it did there. */
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/Oswald-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/Oswald-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/PublicSans-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Public Sans"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/PublicSans-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Roboto Mono"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/RobotoMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Roboto Mono"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/RobotoMono-Bold.woff2") format("woff2"); }
+
+/* Theme: Studio Patchbay  --  kit 'studio-patchbay'.
+   Section 1 is the kit's tokens.css, verbatim. Section 2 is the adapter. */
+
+/* ---- 1. kit tokens.css (verbatim) ---- */
+:root {
+  --kit-bg: #0E0D0C;
+  --kit-bg-subtle: #151413;
+  --kit-surface: #1D1B19;
+  --kit-text: #EAE4D9;
+  --kit-text-muted: #A39B8E;
+  --kit-border: #2E2B27;
+  --kit-accent: #F2C14E;
+  --kit-accent-text: #191400;
+  --kit-accent-alt: #4A90D9;
+  --kit-warn: #D6503C;
+
+  --kit-font-display: 'Oswald',Arial Narrow,sans-serif;
+  --kit-font-body: 'Public Sans',system-ui,sans-serif;
+  --kit-font-mono: 'Roboto Mono',Consolas,monospace;
+
+  --kit-space-xs: 4px;
+  --kit-space-sm: 8px;
+  --kit-space-md: 12px;
+  --kit-space-lg: 16px;
+  --kit-space-xl: 24px;
+
+  --kit-radius-sm: 2px;
+  --kit-radius-md: 2px;
+  --kit-radius-lg: 2px;
+  --kit-radius-full: 9999px;
+
+  --kit-shadow-sm: 0 1px 0 rgba(255,255,255,.03) inset;
+  --kit-shadow-md: 0 1px 0 rgba(255,255,255,.03) inset;
+  --kit-motion-duration: 110ms;
+  --kit-motion-ease: cubic-bezier(.3,.8,.3,1);
+}
+
+/* ---- 2. adapter: what the app needs that the kit does not define ---- */
+:root {
+  --ad-ok: #6fbf73;
+  --ad-warn: #f2c14e;
+  --ad-err: #d6503c;
+  --ad-label-case: uppercase;
+  --ad-label-track: .12em;
+  --ad-heading-scale: 1.2;
+}

@@ -1,0 +1,24 @@
+{
+  "id": "color-clips",
+  "name": "Color Clips",
+  "description": "Set the color of session clips on the ticked tracks. Optionally color those scenes too.",
+  "accent": "#fb7185",
+  "version": "1.0",
+  "enabled": true,
+  "fields": [
+    {
+      "id": "color",
+      "label": "Color (#RRGGBB)",
+      "type": "text",
+      "default": "#3b82f6",
+      "hint": "Enter any hex color code, e.g. #3b82f6 for blue or #ef4444 for red."
+    },
+    {
+      "id": "also_scenes",
+      "label": "Also color those scenes? (yes / no)",
+      "type": "text",
+      "default": "no",
+      "hint": "Type yes to also apply the color to the scene rows, or no to only color clips."
+    }
+  ]
+}

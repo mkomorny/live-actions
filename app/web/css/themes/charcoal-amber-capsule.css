@@ -1,0 +1,52 @@
+/* Bundled fonts (SIL OFL 1.1; licence texts in web/fonts) -- replaces the preview theme's Google Fonts @import. */
+/* The kit asked Google for weights 400 and 700 only, so 500/600 text resolves to those two faces exactly as it did there. */
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/PlusJakartaSans-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/PlusJakartaSans-Bold.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: block; src: url("../../fonts/JetBrainsMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 700; font-display: block; src: url("../../fonts/JetBrainsMono-Bold.woff2") format("woff2"); }
+
+/* Theme: Charcoal Amber Pastel  --  kit 'charcoal-amber-capsule'.
+   Section 1 is the kit's tokens.css, verbatim. Section 2 is the adapter. */
+
+/* ---- 1. kit tokens.css (verbatim) ---- */
+:root {
+  --kit-bg: #f4f5f7;
+  --kit-bg-subtle: #ebecef;
+  --kit-surface: #ffffff;
+  --kit-text: #111827;
+  --kit-text-muted: #6b7280;
+  --kit-border: #e5e7eb;
+  --kit-accent: #f59e0b;
+  --kit-accent-text: #111827;
+  --kit-danger: #ef4444;
+  --kit-warning: #f59e0b;
+  --kit-success: #10b981;
+  --kit-font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --kit-font-body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --kit-font-ui: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --kit-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --kit-size-display: 36px;
+  --kit-space-xs: 4px;
+  --kit-space-sm: 8px;
+  --kit-space-md: 16px;
+  --kit-space-lg: 24px;
+  --kit-space-xl: 32px;
+  --kit-space-2xl: 48px;
+  --kit-radius-sm: 6px;
+  --kit-radius-md: 12px;
+  --kit-radius-lg: 20px;
+  --kit-radius-full: 9999px;
+  --kit-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --kit-shadow-md: 0 8px 24px rgb(0 0 0 / 0.08);
+  --kit-motion-duration: 150ms;
+  --kit-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---- 2. adapter: what the app needs that the kit does not define ---- */
+:root {
+  --ad-ok: var(--kit-success);
+  --ad-warn: var(--kit-warning);
+  --ad-err: var(--kit-danger);
+  --ad-label-case: uppercase;
+  --ad-label-track: .08em;
+}

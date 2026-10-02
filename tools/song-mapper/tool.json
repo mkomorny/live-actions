@@ -1,0 +1,11 @@
+{
+  "id": "song-mapper",
+  "name": "Song Mapper",
+  "description": "Build or re-edit an arrangement from named, colored sections — and move the clips on your ticked tracks to match.",
+  "accent": "#8B5CF6",
+  "version": "0.1",
+  "enabled": true,
+  "ui": "webview",
+  "dialog": "ui/dialog.html",
+  "dialogStatus": "Song Mapper is open in its own dialog window."
+}

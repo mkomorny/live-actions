@@ -1,0 +1,593 @@
+{
+  "id": "audio-sample",
+  "name": "Audio Sample",
+  "description": "ffmpeg-backed sample prep \u2014 trim, fade, normalize, convert, pitch/time, effects, and generators. Runs on the desktop host, not in Live.",
+  "accent": "#38BDF8",
+  "version": "1.0",
+  "enabled": true,
+  "runtime": "host",
+  "fields": [
+    {
+      "id": "operation",
+      "label": "Operation",
+      "type": "select",
+      "options": [
+        "Trim, Fades & Levels \u2014 Trim / Cut",
+        "Trim, Fades & Levels \u2014 Auto-Trim Silence",
+        "Trim, Fades & Levels \u2014 Fade In / Out",
+        "Trim, Fades & Levels \u2014 Gain",
+        "Trim, Fades & Levels \u2014 Normalize",
+        "Convert \u2014 Convert / Resample",
+        "Reverse, Pitch & Time \u2014 Reverse",
+        "Reverse, Pitch & Time \u2014 Pitch & Time Stretch",
+        "Effects \u2014 Echo / Delay",
+        "Effects \u2014 Chorus",
+        "Effects \u2014 Tremolo",
+        "Effects \u2014 Vibrato",
+        "Effects \u2014 EQ / Tone Shape",
+        "Effects \u2014 Bitcrusher / Lo-Fi",
+        "Generators \u2014 Tone Generator",
+        "Generators \u2014 Noise Generator",
+        "Generators \u2014 Silence Generator"
+      ],
+      "default": "Trim, Fades & Levels \u2014 Trim / Cut",
+      "hint": "Pick what to do to the sample, then fill in its settings below."
+    },
+    {
+      "id": "input_file",
+      "label": "Input audio file",
+      "type": "file",
+      "default": "",
+      "filetypes": [
+        [
+          "Audio files",
+          "*.wav *.aiff *.aif *.mp3 *.flac *.ogg"
+        ],
+        [
+          "All files",
+          "*.*"
+        ]
+      ],
+      "hint": "Browse to the sample you want to process.",
+      "showIf": {
+        "field": "operation",
+        "notIn": [
+          "Generators \u2014 Tone Generator",
+          "Generators \u2014 Noise Generator",
+          "Generators \u2014 Silence Generator"
+        ]
+      }
+    },
+    {
+      "id": "trim__start",
+      "label": "Start",
+      "type": "text",
+      "default": "0",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Trim / Cut"
+        ]
+      },
+      "hint": "Seconds or mm:ss.ms"
+    },
+    {
+      "id": "trim__end",
+      "label": "End",
+      "type": "text",
+      "default": "",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Trim / Cut"
+        ]
+      },
+      "hint": "Blank = end of file"
+    },
+    {
+      "id": "autotrim__threshold_db",
+      "label": "Silence threshold",
+      "type": "text",
+      "default": "-40",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Auto-Trim Silence"
+        ]
+      },
+      "hint": "dB, e.g. -40"
+    },
+    {
+      "id": "autotrim__min_silence",
+      "label": "Minimum silence length",
+      "type": "text",
+      "default": "0.3",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Auto-Trim Silence"
+        ]
+      },
+      "hint": "Seconds or mm:ss.ms"
+    },
+    {
+      "id": "autotrim__sides",
+      "label": "Trim",
+      "type": "select",
+      "default": "Both",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Auto-Trim Silence"
+        ]
+      },
+      "options": [
+        "Both",
+        "Start only",
+        "End only"
+      ]
+    },
+    {
+      "id": "fades__fade_in",
+      "label": "Fade in",
+      "type": "text",
+      "default": "0",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Fade In / Out"
+        ]
+      },
+      "hint": "Seconds or mm:ss.ms, 0 = none"
+    },
+    {
+      "id": "fades__fade_out",
+      "label": "Fade out",
+      "type": "text",
+      "default": "0",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Fade In / Out"
+        ]
+      },
+      "hint": "Seconds or mm:ss.ms, 0 = none"
+    },
+    {
+      "id": "fades__curve",
+      "label": "Curve",
+      "type": "select",
+      "default": "tri",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Fade In / Out"
+        ]
+      },
+      "hint": "tri = linear",
+      "options": [
+        "tri",
+        "log",
+        "exp",
+        "qsin",
+        "hsin",
+        "esin",
+        "par",
+        "cub"
+      ]
+    },
+    {
+      "id": "gain__db",
+      "label": "Gain (dB)",
+      "type": "text",
+      "default": "0",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Gain"
+        ]
+      },
+      "hint": "Positive = louder, negative = quieter"
+    },
+    {
+      "id": "normalize__mode",
+      "label": "Mode",
+      "type": "select",
+      "default": "LUFS",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Normalize"
+        ]
+      },
+      "options": [
+        "LUFS",
+        "Peak"
+      ]
+    },
+    {
+      "id": "normalize__target",
+      "label": "Target",
+      "type": "text",
+      "default": "-14",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Normalize"
+        ]
+      },
+      "hint": "LUFS mode: integrated LUFS (e.g. -14). Peak mode: dBFS ceiling (e.g. -1)."
+    },
+    {
+      "id": "normalize__true_peak",
+      "label": "True peak ceiling (LUFS mode)",
+      "type": "text",
+      "default": "-1.5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Trim, Fades & Levels \u2014 Normalize"
+        ]
+      },
+      "hint": "dBTP, ignored in Peak mode"
+    },
+    {
+      "id": "convert__format",
+      "label": "Format",
+      "type": "select",
+      "default": "Keep source format",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Convert \u2014 Convert / Resample"
+        ]
+      },
+      "options": [
+        "Keep source format",
+        "WAV 16-bit",
+        "WAV 24-bit",
+        "WAV 32-bit float",
+        "AIFF 16-bit",
+        "AIFF 24-bit",
+        "FLAC",
+        "MP3",
+        "OGG Vorbis"
+      ]
+    },
+    {
+      "id": "convert__sample_rate",
+      "label": "Sample rate",
+      "type": "text",
+      "default": "",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Convert \u2014 Convert / Resample"
+        ]
+      },
+      "hint": "e.g. 44100, 48000. Blank = keep source"
+    },
+    {
+      "id": "convert__channels",
+      "label": "Channels",
+      "type": "select",
+      "default": "Keep source",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Convert \u2014 Convert / Resample"
+        ]
+      },
+      "options": [
+        "Keep source",
+        "Mono",
+        "Stereo"
+      ]
+    },
+    {
+      "id": "pitch_time__semitones",
+      "label": "Pitch shift (semitones)",
+      "type": "text",
+      "default": "0",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Reverse, Pitch & Time \u2014 Pitch & Time Stretch"
+        ]
+      },
+      "hint": "e.g. 12 = up an octave, -12 = down an octave"
+    },
+    {
+      "id": "pitch_time__tempo_pct",
+      "label": "Tempo (%)",
+      "type": "text",
+      "default": "100",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Reverse, Pitch & Time \u2014 Pitch & Time Stretch"
+        ]
+      },
+      "hint": "100 = unchanged, 50 = half speed, 200 = double speed"
+    },
+    {
+      "id": "echo__delay_ms",
+      "label": "Delay (ms)",
+      "type": "text",
+      "default": "500",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Echo / Delay"
+        ]
+      }
+    },
+    {
+      "id": "echo__decay",
+      "label": "Decay (0-1)",
+      "type": "text",
+      "default": "0.5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Echo / Delay"
+        ]
+      }
+    },
+    {
+      "id": "chorus__depth",
+      "label": "Depth",
+      "type": "text",
+      "default": "1",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Chorus"
+        ]
+      },
+      "hint": "Multiplier, 1 = ffmpeg default"
+    },
+    {
+      "id": "chorus__rate",
+      "label": "Rate",
+      "type": "text",
+      "default": "1",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Chorus"
+        ]
+      },
+      "hint": "Multiplier, 1 = ffmpeg default"
+    },
+    {
+      "id": "tremolo__frequency",
+      "label": "Frequency (Hz)",
+      "type": "text",
+      "default": "5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Tremolo"
+        ]
+      }
+    },
+    {
+      "id": "tremolo__depth",
+      "label": "Depth (0-1)",
+      "type": "text",
+      "default": "0.5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Tremolo"
+        ]
+      }
+    },
+    {
+      "id": "vibrato__frequency",
+      "label": "Frequency (Hz)",
+      "type": "text",
+      "default": "5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Vibrato"
+        ]
+      }
+    },
+    {
+      "id": "vibrato__depth",
+      "label": "Depth (0-1)",
+      "type": "text",
+      "default": "0.5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Vibrato"
+        ]
+      }
+    },
+    {
+      "id": "eq__highpass_hz",
+      "label": "Highpass cutoff (Hz)",
+      "type": "text",
+      "default": "",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 EQ / Tone Shape"
+        ]
+      },
+      "hint": "Blank = off"
+    },
+    {
+      "id": "eq__lowpass_hz",
+      "label": "Lowpass cutoff (Hz)",
+      "type": "text",
+      "default": "",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 EQ / Tone Shape"
+        ]
+      },
+      "hint": "Blank = off"
+    },
+    {
+      "id": "eq__bass_db",
+      "label": "Bass gain (dB)",
+      "type": "text",
+      "default": "0",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 EQ / Tone Shape"
+        ]
+      }
+    },
+    {
+      "id": "eq__treble_db",
+      "label": "Treble gain (dB)",
+      "type": "text",
+      "default": "0",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 EQ / Tone Shape"
+        ]
+      }
+    },
+    {
+      "id": "bitcrush__bits",
+      "label": "Bits",
+      "type": "text",
+      "default": "8",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Bitcrusher / Lo-Fi"
+        ]
+      },
+      "hint": "1-64, lower = crunchier"
+    },
+    {
+      "id": "bitcrush__mix",
+      "label": "Mix",
+      "type": "text",
+      "default": "0.5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Bitcrusher / Lo-Fi"
+        ]
+      },
+      "hint": "0-1"
+    },
+    {
+      "id": "bitcrush__sample_reduction",
+      "label": "Sample reduction",
+      "type": "text",
+      "default": "1",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Effects \u2014 Bitcrusher / Lo-Fi"
+        ]
+      },
+      "hint": "1-250, higher = more aliasing"
+    },
+    {
+      "id": "tone__frequency",
+      "label": "Frequency (Hz)",
+      "type": "text",
+      "default": "440",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Generators \u2014 Tone Generator"
+        ]
+      }
+    },
+    {
+      "id": "tone__duration",
+      "label": "Duration",
+      "type": "text",
+      "default": "2",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Generators \u2014 Tone Generator"
+        ]
+      },
+      "hint": "Seconds or mm:ss.ms"
+    },
+    {
+      "id": "noise__color",
+      "label": "Color",
+      "type": "select",
+      "default": "white",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Generators \u2014 Noise Generator"
+        ]
+      },
+      "options": [
+        "white",
+        "pink",
+        "brown"
+      ]
+    },
+    {
+      "id": "noise__amplitude",
+      "label": "Amplitude (0-1)",
+      "type": "text",
+      "default": "0.5",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Generators \u2014 Noise Generator"
+        ]
+      }
+    },
+    {
+      "id": "noise__duration",
+      "label": "Duration",
+      "type": "text",
+      "default": "2",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Generators \u2014 Noise Generator"
+        ]
+      },
+      "hint": "Seconds or mm:ss.ms"
+    },
+    {
+      "id": "silence__duration",
+      "label": "Duration",
+      "type": "text",
+      "default": "2",
+      "showIf": {
+        "field": "operation",
+        "in": [
+          "Generators \u2014 Silence Generator"
+        ]
+      },
+      "hint": "Seconds or mm:ss.ms"
+    },
+    {
+      "id": "destination",
+      "label": "Destination",
+      "type": "select",
+      "options": [
+        "Leave in output folder",
+        "Save to PC",
+        "Add to Live Set"
+      ],
+      "default": "Leave in output folder",
+      "hint": "Leave in output folder just writes the file. Save to PC asks where to put it. Add to Live Set places it on the first ticked audio track."
+    }
+  ]
+}

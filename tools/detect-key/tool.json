@@ -1,0 +1,32 @@
+{
+  "id": "detect-key",
+  "name": "Detect Key",
+  "description": "Find the key (and mode) of a MIDI clip, ticked track(s), or the whole Set. Krumhansl-Schmuckler pitch-class analysis. Same 7 notes can be 7 modes — home is picked from the bass, downbeats and final notes; a real tie is reported, not guessed.",
+  "accent": "#e879f9",
+  "version": "1.0",
+  "enabled": true,
+  "scope": "set",
+  "fields": [
+    {
+      "id": "scope",
+      "label": "Scope: clip, track, or set",
+      "type": "text",
+      "default": "clip",
+      "hint": "clip = the selected/detail MIDI clip. track = every clip on ticked MIDI track(s) — tick track(s) on the left first. set = every MIDI clip in the whole Live Set."
+    },
+    {
+      "id": "profile",
+      "label": "Profile: krumhansl-kessler or temperley",
+      "type": "text",
+      "default": "krumhansl-kessler",
+      "hint": "Which published pitch-class weight table to correlate against. krumhansl-kessler is the classic, most-tested choice; temperley is a later revision that leans differently on some scale degrees."
+    },
+    {
+      "id": "results",
+      "label": "How many results to show (1-12)",
+      "type": "text",
+      "default": "3",
+      "hint": "Top N key/mode guesses to report, best match first."
+    }
+  ]
+}

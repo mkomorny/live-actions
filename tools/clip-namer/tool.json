@@ -1,0 +1,17 @@
+{
+  "id": "clip-namer",
+  "name": "Clip Namer",
+  "description": "Rename session clips on the tracks you tick. Tokens: {track} {bar} {take} {index}.",
+  "accent": "#3b82f6",
+  "version": "1.0",
+  "enabled": true,
+  "fields": [
+    {
+      "id": "pattern",
+      "label": "Name pattern",
+      "type": "text",
+      "default": "{track} {bar} take",
+      "hint": "Available tokens: {track} = track name, {bar} = bar number, {take} = take count, {index} = clip slot index."
+    }
+  ]
+}

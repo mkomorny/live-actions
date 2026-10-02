@@ -1,0 +1,19 @@
+{
+  "id": "arrangement-skeleton",
+  "name": "Arrangement Skeleton",
+  "description": "Drop Arrangement locators: Intro 8, Verse 16, Chorus 16, Outro 8.",
+  "accent": "#eab308",
+  "version": "1.1",
+  "enabled": true,
+  "scope": "set",
+  "runLabel": "Drop locators",
+  "fields": [
+    {
+      "id": "sections",
+      "label": "Sections and bar lengths",
+      "type": "text",
+      "default": "Intro 8, Verse 16, Chorus 16, Outro 8",
+      "hint": "Comma-separated list of Section Name and Bar Length pairs."
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "mutate",
+  "name": "Mutate",
+  "description": "Write variation clips from the selected MIDI clip on a ticked track. Same math as the Mutate MIDI Tool.",
+  "accent": "#a78bfa",
+  "version": "1.0",
+  "enabled": true,
+  "fields": [
+    {
+      "id": "count",
+      "label": "How many variations (1-16)",
+      "type": "text",
+      "default": "4",
+      "hint": "How many variation clips to generate from the source clip (max 16)."
+    },
+    {
+      "id": "drop",
+      "label": "Drop notes (0-1)",
+      "type": "text",
+      "default": "0.1",
+      "hint": "Probability to randomly remove notes (0 = none removed, 1 = all removed). Try 0.1."
+    },
+    {
+      "id": "swap",
+      "label": "Swap pitches (0-1)",
+      "type": "text",
+      "default": "0.2",
+      "hint": "Probability to swap note pitches around (0 = no swaps, 1 = all swapped). Try 0.2."
+    },
+    {
+      "id": "velRange",
+      "label": "Velocity wobble (0-40)",
+      "type": "text",
+      "default": "15",
+      "hint": "How much to randomly vary MIDI velocity per note (0 = none, 40 = a lot)."
+    },
+    {
+      "id": "startRange",
+      "label": "Timing wobble in beats (0-0.25)",
+      "type": "text",
+      "default": "0",
+      "hint": "Max timing randomization in beats (0 = tight, 0.05 = slight groove, 0.25 = loose)."
+    },
+    {
+      "id": "mode",
+      "label": "Mode: independent or cumulative",
+      "type": "text",
+      "default": "independent",
+      "hint": "independent = each variation starts from the original clip. cumulative = each variation builds on the previous."
+    },
+    {
+      "id": "seed",
+      "label": "Seed",
+      "type": "text",
+      "default": "1",
+      "hint": "Random seed — change this number to get a completely different set of variations."
+    }
+  ]
+}
